@@ -4,8 +4,7 @@ class ContaminationDetectionStrategy:
 
 class ThresholdingStrategy(ContaminationDetectionStrategy):
     def detect_contamination(self, image):
-        print("Ahoj\n")
-
+        pass
 class EdgeDetectionStrategy(ContaminationDetectionStrategy):
     def detect_contamination(self, image):
         pass

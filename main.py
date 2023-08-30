@@ -14,4 +14,3 @@ if __name__ == "__main__":
 
     image_path = "path_to_your_image.jpg"
     facade.measure_contamination(image_path)
-    print("AhojS.")
