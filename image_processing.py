@@ -1,5 +1,6 @@
 import os
 import glob
+import cv2
 
 # creates list of image paths from folder
 def load_images_from_folder(folder_path):
@@ -15,10 +16,12 @@ def load_images_from_folder(folder_path):
     return image_paths
 
 def load_image(image_path):
-    pass
+    return cv2.imread(image_path)
 
+# cutt off the edges of the image
 def preprocess_image(image):
-    pass
+    return image[100:image.shape[0] - 100, 100:image.shape[1] - 200]
+    # return image.crop((100, 100, image.width - 100, image.height - 200))
 
 def post_process_contamination(detected_contamination):
     pass

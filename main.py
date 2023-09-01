@@ -27,27 +27,28 @@ if __name__ == "__main__":
     print("Facade will now measure contamination for all images in the folder")
     
     # Create a Matplotlib figure to display the images
-    fig = plt.figure()
+    # fig = plt.figure()
 
     # Loop through the image paths and display each image in grayscale
     for image_path in image_paths:
-        # Open the image using Pillow
-        image = Image.open(image_path)
+        facade.measure_contamination(image_path)
+        
+        # # Open the image using Pillow
+        # image = Image.open(image_path)
 
-        # Convert the image to grayscale (L mode)
-        image = image.convert('L')
+        # # Convert the image to grayscale (L mode)
+        # image = image.convert('L')
 
-        # Display the grayscale image using Matplotlib with the 'gray' colormap
-        plt.imshow(image, cmap='gray')
+        # # Display the grayscale image using Matplotlib with the 'gray' colormap
+        # plt.imshow(image, cmap='gray')
 
-        # Add a title with the image file name
-        plt.title(image_path)
+        # # Add a title with the image file name
+        # plt.title(image_path)
 
-        # Click to skip to the next image
-        plt.waitforbuttonpress()
+        # # Click to skip to the next image
+        # plt.waitforbuttonpress()
 
-        # Clear the current figure to display the next image
-        plt.clf()
-
+        # # Clear the current figure to display the next image
+        # plt.clf()
     # Close the Matplotlib figure when done
-    plt.close(fig)
+    # plt.close(fig)

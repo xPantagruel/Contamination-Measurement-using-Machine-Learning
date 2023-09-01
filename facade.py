@@ -1,3 +1,4 @@
+from matplotlib.pyplot import imshow
 from strategy import *
 from observer import *
 from image_processing import *
@@ -17,6 +18,10 @@ class ContaminationMeasurementFacade:
     def measure_contamination(self, image_path):
         image = load_image(image_path)
         preprocessed_image = preprocess_image(image)
+        
+        cv2.imshow('Image', preprocessed_image)
+        cv2.waitKey(0)
+        
         detected_contamination = self.strategy.detect_contamination(preprocessed_image)
         refined_contamination = post_process_contamination(detected_contamination)
         self.notify_observers()
