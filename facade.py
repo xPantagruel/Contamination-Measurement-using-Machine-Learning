@@ -22,6 +22,9 @@ class ContaminationMeasurementFacade:
         cv2.imshow('Image', preprocessed_image)
         cv2.waitKey(0)
         
+        # horizonta_edge_filter(preprocessed_image)
+        
+        find_gradients(preprocessed_image)
         detected_contamination = self.strategy.detect_contamination(preprocessed_image)
         refined_contamination = post_process_contamination(detected_contamination)
         self.notify_observers()
