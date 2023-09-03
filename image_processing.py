@@ -1,7 +1,10 @@
 import os
 import glob
 import cv2
+from skimage import color, filters
+import matplotlib.pyplot as plt
 import numpy as np
+from scipy.ndimage import gaussian_laplace
 
 # creates list of image paths from folder
 def load_images_from_folder(folder_path):
@@ -24,43 +27,46 @@ def preprocess_image(image):
     return image[100:image.shape[0] - 100, 100:image.shape[1] - 200]
     # return image.crop((100, 100, image.width - 100, image.height - 200))
 
-def horizonta_edge_filter(image):
-    # Define the horizontal filter kernel
-    kernel = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
+def sobel_edge_detection(gray_image):
 
-    # Apply the filter using cv2.filter2D()
-    filtered_image = cv2.filter2D(image, -1, kernel)
-
-    # Display the original and filtered images
-    cv2.imshow('Original Image', image)
-    cv2.imshow('Filtered Image', filtered_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # Apply Sobel operator
+    sobel_x = cv2.Sobel(gray_image, cv2.CV_64F, 1, 0, ksize=3)
+    sobel_y = cv2.Sobel(gray_image, cv2.CV_64F, 0, 1, ksize=3)
     
-def find_gradients(image):
-    # Compute the gradients using the Sobel operator
-    gradient_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=31)
-    gradient_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=31)
-
-    # Compute the gradient magnitude and direction
-    gradient_magnitude = np.sqrt(gradient_x**2 + gradient_y**2)
-
-    # Normalize the gradient magnitude for visualization
-    gradient_magnitude_normalized = cv2.normalize(gradient_magnitude, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-
-
-    # Display the original image and normalized gradient magnitude
-    # Get the screen dimensions
-    screen_width, screen_height = (1920, 1080)  # Replace with your screen resolution
-
-    # Create a window with the screen dimensions
-    cv2.namedWindow('gradient_magnitude_normalized', cv2.WINDOW_NORMAL)
+    # Combine the gradients to find edges
+    magnitude = cv2.magnitude(sobel_x, sobel_y)
     
-    # Resize the window to fit the screen
-    cv2.resizeWindow('gradient_magnitude_normalized', screen_width, screen_height)
+    return magnitude
+
+def prewitt_edge_detection(gray_image):
+    # Apply Prewitt operator
+    prewitt_edges = filters.prewitt(gray_image)
     
-    # Display the image
-    cv2.imshow('gradient_magnitude_normalized', gradient_magnitude_normalized)
+    return prewitt_edges
+
+def roberts_edge_detection(gray_image):
+    # Apply Roberts operator
+    roberts_edges = filters.roberts(gray_image)
     
+    return roberts_edges
+ 
+def canny_edge_detection(gray_image):
+    # Apply Canny edge detector
+    edges = cv2.Canny(gray_image, threshold1=100, threshold2=200)
+    
+    return edges
+
+def laplacian_of_gaussian(gray_image, sigma=1):
+    # Apply the Laplacian of Gaussian (LoG) filter
+    log_edges = gaussian_laplace(gray_image, sigma=sigma)
+    
+    # Adjust the range of values for visualization
+    log_edges = (log_edges - np.min(log_edges)) / (np.max(log_edges) - np.min(log_edges)) * 255
+    
+    # Convert to 8-bit unsigned integer (0-255)
+    log_edges = np.uint8(log_edges)
+    
+    return log_edges
+
 def post_process_contamination(detected_contamination):
     pass

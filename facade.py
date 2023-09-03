@@ -2,7 +2,7 @@ from matplotlib.pyplot import imshow
 from strategy import *
 from observer import *
 from image_processing import *
-
+from helper_class import *
 class ContaminationMeasurementFacade:
     def __init__(self, strategy):
         self.strategy = strategy
@@ -19,12 +19,8 @@ class ContaminationMeasurementFacade:
         image = load_image(image_path)
         preprocessed_image = preprocess_image(image)
         
-        cv2.imshow('Image', preprocessed_image)
-        cv2.waitKey(0)
+        visualize_edge_detection(preprocessed_image)
         
-        # horizonta_edge_filter(preprocessed_image)
-        
-        find_gradients(preprocessed_image)
         detected_contamination = self.strategy.detect_contamination(preprocessed_image)
         refined_contamination = post_process_contamination(detected_contamination)
         self.notify_observers()
