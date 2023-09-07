@@ -2,56 +2,58 @@ import cv2
 from skimage import color
 import matplotlib.pyplot as plt
 from image_processing import *
+from PIL import Image
 
-def visualize_edge_detection(image):
-    # Apply Sobel operator
-    sobel_edges = sobel_edge_detection(image)
-    
-    # Apply Prewitt operator
-    prewitt_edges = prewitt_edge_detection(image)
-    
-    # Apply Roberts operator
-    roberts_edges = roberts_edge_detection(image)
-    
-    # Apply Canny edge detector
-    canny_edges = canny_edge_detection(image)
-    
-    # Apply Laplacian of Gaussian
-    log_edges = laplacian_of_gaussian(image)
-    
-    # Create a subplot for each edge detection method
-    plt.figure(figsize=(15, 10))
-    
-    # Display the source image
-    plt.subplot(2, 3, 1)
-    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-    plt.title('Source Image')
-    
-    # Display Sobel edges
-    plt.subplot(2, 3, 2)
-    plt.imshow(sobel_edges, cmap='gray')
-    plt.title('Sobel Operator')
-    
-    # Display Prewitt edges
-    plt.subplot(2, 3, 3)
-    plt.imshow(prewitt_edges, cmap='gray')
-    plt.title('Prewitt Operator')
-    
-    # Display Roberts edges
-    plt.subplot(2, 3, 4)
-    plt.imshow(roberts_edges, cmap='gray')
-    plt.title('Roberts Operator')
-    
-    # Display Canny edges
-    plt.subplot(2, 3, 5)
-    plt.imshow(canny_edges, cmap='gray')
-    plt.title('Canny Edge Detector')
-    
-    # Display Laplacian of Gaussian edges
-    plt.subplot(2, 3, 6)
-    plt.imshow(log_edges, cmap='gray')
-    plt.title('Laplacian of Gaussian')
-    
-    # Show the plots
+def show_images(images, names):
+    """
+    Display a list of images with corresponding names using Matplotlib.
+
+    Args:
+        images (list): List of image data (numpy arrays or PIL images).
+        names (list): List of image names (strings).
+    """
+    if len(images) != len(names):
+        raise ValueError("The number of images must be equal to the number of names.")
+
+    num_images = len(images)
+    rows = (num_images // 3) + 1  # Display 3 images per row
+
+    fig, axes = plt.subplots(rows, 3, figsize=(12, 4 * rows))
+    axes = axes.ravel()
+
+    for i in range(num_images):
+        axes[i].imshow(images[i])
+        axes[i].set_title(names[i])
+        axes[i].axis('off')
+
+    # Hide any remaining empty subplots
+    for i in range(num_images, len(axes)):
+        axes[i].axis('off')
+
     plt.tight_layout()
     plt.show()
+
+
+def create_imagelist_edge_detection(image):
+    # Example usage:
+    images_list = [
+        cv2.convertScaleAbs(image),
+        cv2.convertScaleAbs(sobel_edge_detection(image)),
+        cv2.convertScaleAbs(prewitt_edge_detection(image)),
+        cv2.convertScaleAbs(roberts_edge_detection(image)),
+        cv2.convertScaleAbs(canny_edge_detection(image)),
+        cv2.convertScaleAbs(laplacian_of_gaussian(image)),
+        cv2.convertScaleAbs(hough_transform_line_detection(image))
+    ]
+
+    titles_list = [
+        'source',
+        'Sobel Operator',
+        'Prewitt Operator',
+        'Roberts Operator',
+        'Canny Edge Detector',
+        'Laplacian of Gaussian',
+        'hough transform'
+    ]
+
+    show_images(images_list, titles_list)

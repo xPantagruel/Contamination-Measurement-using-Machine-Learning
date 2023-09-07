@@ -19,7 +19,12 @@ class ContaminationMeasurementFacade:
         image = load_image(image_path)
         preprocessed_image = preprocess_image(image)
         
-        visualize_edge_detection(preprocessed_image)
+        canny_image = canny_edge_detection(preprocessed_image, 100,20, 5,7)
+        # Display the Canny edges image
+        cv2.imshow('Canny Edges', canny_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        # create_imagelist_edge_detection(preprocessed_image)
         
         detected_contamination = self.strategy.detect_contamination(preprocessed_image)
         refined_contamination = post_process_contamination(detected_contamination)
