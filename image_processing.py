@@ -5,6 +5,7 @@ from skimage import color, filters
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.ndimage import gaussian_laplace
+from PIL import Image
 
 # creates list of image paths from folder
 def load_images_from_folder(folder_path):
@@ -134,6 +135,56 @@ def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, si
     edge_image = edge_tracking_by_hysteresis(strong_edges, weak_edges)
     
     return edge_image
+
+def plot_histogram(image_path):
+    # Load the image in grayscale
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+    # Calculate the histogram
+    hist = cv2.calcHist([image], [0], None, [256], [0, 256])
+
+    # Plot the histogram
+    plt.figure(figsize=(8, 6))
+    plt.hist(image.ravel(), 256, [0, 256])
+    plt.xlabel('Pixel Value')
+    plt.ylabel('Frequency')
+    plt.title('Histogram')
+    plt.show()
+
+def blurring(img):
+    return apply_bilateral_filter(img)
+
+def apply_gaussian_blur(image, kernel_size=(5, 5), sigma_x=0):
+    blurred_image = cv2.GaussianBlur(image, kernel_size, sigma_x)
+    cv2.imshow('Blurred Image', blurred_image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    return blurred_image
+
+def apply_median_blur(image, kernel_size = 5):
+    blurred_image = cv2.medianBlur(image, kernel_size)
+    return blurred_image
+
+def apply_bilateral_filter(image, d=9,simgaColor=75,sigmaSpace=75):#this One looks like working the best
+    blurred_image = cv2.bilateralFilter(image, d, simgaColor, sigmaSpace)
+    return blurred_image
+
+def apply_fastNlMeansDenoisingColored(image ):
+    pass
+
+def thresholding(img):
+    ret, thresh0 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
+    ret, thresh1 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO_INV)
+    ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)#VERY GOOD 
+    ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)#For bottom of layer might be top
+    ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)
+
+    # Displaying the output image
+    cv2.imshow('Threshold', thresh2)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    return thresh2
+
 
 def post_process_contamination(detected_contamination):
     pass

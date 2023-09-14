@@ -18,8 +18,9 @@ class ContaminationMeasurementFacade:
     def measure_contamination(self, image_path):
         image = load_image(image_path)
         preprocessed_image = preprocess_image(image)
-        
-        canny_image = canny_edge_detection(preprocessed_image, 100,20, 5,7)
+        blurred_Image = blurring(preprocessed_image)
+        threshold_Image = thresholding(blurred_Image)
+        canny_image = canny_edge_detection(threshold_Image, 45,50, 7,2)
         # Display the Canny edges image
         cv2.imshow('Canny Edges', canny_image)
         cv2.waitKey(0)
