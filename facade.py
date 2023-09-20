@@ -21,11 +21,7 @@ class ContaminationMeasurementFacade:
         blurred_Image = blurring(preprocessed_image)
         threshold_Image = thresholding(blurred_Image)
         canny_image = canny_edge_detection(threshold_Image, 45,50, 7,2)
-        # Display the Canny edges image
-        cv2.imshow('Canny Edges', canny_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        # create_imagelist_edge_detection(preprocessed_image)
+        # display_images_side_by_side([canny_image, threshold_Image, blurred_Image, preprocessed_image])
         
         detected_contamination = self.strategy.detect_contamination(preprocessed_image)
         refined_contamination = post_process_contamination(detected_contamination)
