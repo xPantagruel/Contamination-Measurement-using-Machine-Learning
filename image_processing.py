@@ -194,14 +194,10 @@ def thresholding(img):
     # cv2.destroyAllWindows()
     return thresh2
 
-def sharpening_image(image):
-    # Define the sharpening kernel
-    sharpening_kernel = np.array([[-1, -1, -1],
-                                [-1, 9, -1],
-                                [-1, -1, -1]])
-    
-    sharpened_image = cv2.filter2D(image, -1, sharpening_kernel)
-    return sharpened_image
+def parallel_shift_denoise(image, shift_direction=(1, 1)):
+    shifted_image = np.roll(image, shift_direction, axis=(0, 1))
+    denoised_image = (image + shifted_image) / 2
+    return denoised_image
 
 def post_process_contamination(detected_contamination):
     pass
