@@ -133,12 +133,6 @@ def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, si
     suppressed_image = non_maximum_suppression(gradient_magnitude_image, gradient_x_image, gradient_y_image)
     strong_edges, weak_edges = hysteresis_threshold(suppressed_image, low_threshold, high_threshold)
     edge_image = edge_tracking_by_hysteresis(strong_edges, weak_edges)
-    # Display the Canny edges image
-    # cv2.namedWindow('Canny Edges', cv2.WINDOW_NORMAL)
-    # cv2.setWindowProperty('Canny Edges', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-    # cv2.imshow('Canny Edges', edge_image)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
     return edge_image
 
 def plot_histogram(image_path):
@@ -161,11 +155,6 @@ def blurring(img):
 
 def apply_gaussian_blur(image, kernel_size=(5, 5), sigma_x=0):
     blurred_image = cv2.GaussianBlur(image, kernel_size, sigma_x)
-    # cv2.namedWindow('Blurred Image', cv2.WINDOW_NORMAL)
-    # cv2.setWindowProperty('Blurred Image', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-    # cv2.imshow('Blurred Image', blurred_image)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
     return blurred_image
 
 def apply_median_blur(image, kernel_size = 5):
@@ -185,14 +174,7 @@ def thresholding(img):
     ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)#VERY GOOD 
     ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)#For bottom of layer might be top
     ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)
-
-    # Displaying the output image
-    # cv2.namedWindow('Threshold', cv2.WINDOW_NORMAL)
-    # cv2.setWindowProperty('Threshold', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-    # cv2.imshow('Threshold', thresh2)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-    return thresh2
+    return thresh1
 
 def parallel_shift_denoise(image, shift_direction=(1, 1)):
     shifted_image = np.roll(image, shift_direction, axis=(0, 1))
