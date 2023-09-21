@@ -25,7 +25,6 @@ def load_image(image_path):
 
 # cutt off the edges of the image
 def preprocess_image(image):
-
     return image[100:image.shape[0] - 100, 100:image.shape[1] - 200]
     # return image.crop((100, 100, image.width - 100, image.height - 200))
 
