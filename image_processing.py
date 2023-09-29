@@ -136,8 +136,8 @@ def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, si
 
 def plot_histogram(image_path):
     # Load the image in grayscale
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-
+    image = load_image(image_path)
+    image = preprocess_image(image)
     # Calculate the histogram
     hist = cv2.calcHist([image], [0], None, [256], [0, 256])
 
@@ -148,6 +148,39 @@ def plot_histogram(image_path):
     plt.ylabel('Frequency')
     plt.title('Histogram')
     plt.show()
+    
+def Get_Image_With_Most_frequent_Pixel_Red(image_path):
+    # Load the image in grayscale
+    image = load_image(image_path)
+    image = preprocess_image(image)
+
+    # Calculate the histogram
+    hist = cv2.calcHist([image], [0], None, [256], [0, 256])
+
+    # Find the mode (pixel value with the highest frequency)
+    mode_pixel_value = np.argmax(hist)
+
+    # Create a blank color image
+    color_image = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.uint8)
+
+    # Set pixels with the mode value to red
+    color_image[image == mode_pixel_value] = [255,255,255]  # White color
+    
+    plt.figure(figsize=(12, 6))
+
+    # Plot the source grayscale image on the left
+    plt.subplot(1, 2, 1)
+    plt.imshow(image, cmap='gray')
+    plt.axis('off')
+    plt.title('Source Grayscale Image')
+    
+    # Display the color image
+    plt.subplot(1, 2, 2)
+    plt.imshow(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))
+    plt.axis('off')
+    plt.title('Color Image with Most Frequent Pixel in Red')
+    plt.show()
+
 
 def blurring(img):
     return apply_gaussian_blur(img)
@@ -167,13 +200,14 @@ def apply_bilateral_filter(image, d=9,simgaColor=75,sigmaSpace=75):#this One loo
 def apply_fastNlMeansDenoisingColored(image ):
     pass
 
-def thresholding(img):
-    ret, thresh0 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
-    ret, thresh1 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO_INV)
-    ret, thresh2 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)#VERY GOOD 
-    ret, thresh3 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)#For bottom of layer might be top
-    ret, thresh4 = cv2.threshold(img, 127, 255, cv2.THRESH_TRUNC)
-    return thresh1
+def thresholding(img, thresh=127, maxval=255, type=cv2.THRESH_BINARY):
+    ret, thresholding = cv2.threshold(img, thresh, maxval, type)
+    return thresholding
+
+def adaptive_threshold(image, block_size=31, c=-10):
+    # Apply adaptive thresholding
+    thresholded = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, c)
+    return thresholded
 
 def parallel_shift_denoise(image, shift_direction=(1, 1)):
     shifted_image = np.roll(image, shift_direction, axis=(0, 1))
