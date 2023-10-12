@@ -1,52 +1,51 @@
 import cv2
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
 import numpy as np
 
-def adaptive_threshold_gui(image):
-    def update_threshold_image():
-        block_size = int(block_size_slider.get())  # Cast to integer
-        c = int(c_slider.get())  # Cast to integer
 
-        thresholded = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, c)
-        print(block_size, c)
-        thresholded_image = Image.fromarray(thresholded)
-        thresholded_photo = ImageTk.PhotoImage(image=thresholded_image)
+class ImageThresholdingApp:
+    def __init__(self, image):
+        self.image = image
+        if self.image is None:
+            raise ValueError("Image not found or could not be loaded.")
 
-        thresholded_label.config(image=thresholded_photo)
-        thresholded_label.image = thresholded_photo
+        self.threshold_type = cv2.THRESH_BINARY_INV
+        self.threshold_value = 158
+
+        self.create_window()
+
+    def create_window(self):
+        cv2.namedWindow("Image Thresholding", cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty("Image Thresholding",
+                              cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+        cv2.createTrackbar("Threshold Value", "Image Thresholding",
+                           self.threshold_value, 255, self.update_threshold)
+        cv2.createTrackbar("Threshold Type", "Image Thresholding",
+                           0, 4, self.update_threshold_type)
+        self.update_threshold(0)  # Initial thresholding
+
+        while True:
+            key = cv2.waitKey(1) & 0xFF
+            if key == 27:  # Press 'Esc' to exit
+                break
+
+        cv2.destroyAllWindows()
+
+    def update_threshold(self, value):
+        self.threshold_value = cv2.getTrackbarPos(
+            "Threshold Value", "Image Thresholding")
+        _, thresholded_image = cv2.threshold(
+            self.image, self.threshold_value, 255, self.threshold_type)
+        cv2.imshow("Image Thresholding", thresholded_image)
+
+    def update_threshold_type(self, value):
+        threshold_types = [cv2.THRESH_TOZERO_INV, cv2.THRESH_BINARY, cv2.THRESH_BINARY_INV,
+                           cv2.THRESH_TRUNC, cv2.THRESH_TOZERO]
+        self.threshold_type = threshold_types[value]
+        # Update the thresholded image when the type changes
+        self.update_threshold(0)
 
 
-    # Create the main window
-    root = tk.Tk()
-    root.title('Adaptive Thresholding')
-
-    # Create a frame for sliders
-    slider_frame = ttk.Frame(root)
-    slider_frame.pack(padx=10, pady=10)
-
-    # Create sliders for block_size and c
-    block_size_slider = ttk.Scale(slider_frame, from_=3, to=31, length=200, orient='horizontal')
-    c_slider = ttk.Scale(slider_frame, from_=-10, to=10, length=200, orient='horizontal')
-
-    # Set initial values for sliders
-    block_size_slider.set(31)
-    c_slider.set(-10)
-
-    # Create a button to apply thresholding
-    apply_button = ttk.Button(root, text='Apply Thresholding', command=update_threshold_image)
-
-    # Create a label to display the thresholded image
-    thresholded_label = ttk.Label(root)
-
-    # Pack the sliders, button, and label
-    block_size_slider.pack()
-    c_slider.pack()
-    apply_button.pack()
-    thresholded_label.pack()
-
-    # Update the thresholded image initially
-    update_threshold_image()
-
-    root.mainloop()
+if __name__ == "__main__":
+    image_path = "your_image.jpg"  # Replace with your image path
+    app = ImageThresholdingApp(image_path)

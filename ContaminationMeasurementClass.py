@@ -2,39 +2,45 @@ from matplotlib.pyplot import imshow
 from image_processing import *
 from helper_class import *
 
+
 class ContaminationMeasurementClass:
     def measure_contamination(self, image_path):
         image = load_image(image_path)
         preprocessed_image = self.cutt_off_edges(image)
-        blurred_image = self.blur_image(preprocessed_image)
-        thresholded_image1 = thresholding(blurred_image, 100, 255, cv2.THRESH_BINARY_INV)
-        adaptive_threshold_image = adaptive_threshold(thresholded_image1)  
-        thresholded_image = thresholding(adaptive_threshold_image)
-        # thresholded_image = self.threshold_image(thresholded_image)
-        
-        canny_image = self.detect_edges(thresholded_image)
-        scharr_image = self.scharr(thresholded_image)
+        app = ImageThresholdingApp(preprocessed_image)
+        app.create_window()
+        # blurred_image = self.blur_image(preprocessed_image)
+        # # thresholded_image1 = thresholding(blurred_image, 100, 255, cv2.THRESH_BINARY_INV)
+        # # adaptive_threshold_image = adaptive_threshold(blurred_image)
+        # thresholded_image = thresholding(preprocessed_image)
+        # # thresholded_image1 = thresholding(blurred_image)
+        # # thresholded_image = otsu_thresholding(thresholded_image1)
 
-        # Visualization
-        images_to_visualize = [image, preprocessed_image, blurred_image, thresholded_image, scharr_image,]
-        titles = ["Original Image", "Preprocessed Image", "Blurred Image", "Thresholded Image", "Scharr Edge Detection"]
+        # canny_image = self.detect_edges(thresholded_image)
+        # scharr_image = self.scharr(thresholded_image)
 
-        self.visualize(images_to_visualize, titles)
+        # # Visualization
+        # images_to_visualize = [image, preprocessed_image,
+        #                        thresholded_image, canny_image, scharr_image,]
+        # titles = ["Original Image", "Preprocessed Image",
+        #           "thresholded_image1", "Thresholded Image", "Scharr Edge Detection"]
+
+        # self.visualize(images_to_visualize, titles)
 
         # image = load_image(image_path)
         # preprocessed_image = self.cutt_off_edges(image)
         # adaptive_threshold_gui(preprocessed_image)
-    
+
     def cutt_off_edges(self, image):
         return preprocess_image(image)
-    
+
     def blur_image(self, image):
-        return blurring(image) 
-    
+        return blurring(image)
+
     def detect_edges(self, image):
         return canny_edge_detection(image, 45, 50, 7, 2)
-    
-    def probabilistic_hough_lines_example(self,image):
+
+    def probabilistic_hough_lines_example(self, image):
         # Define Hough parameters
         rho = 1  # Pixel resolution of the accumulator
         theta = np.pi / 180  # Angle resolution of the accumulator (1 degree)
@@ -43,20 +49,22 @@ class ContaminationMeasurementClass:
         max_line_gap = 10  # Maximum gap between line segments to be considered as a single line
 
         # Detect lines using Probabilistic Hough Line Transform
-        lines = cv2.HoughLinesP(image, rho, theta, threshold, minLineLength=min_line_length, maxLineGap=max_line_gap)
+        lines = cv2.HoughLinesP(image, rho, theta, threshold,
+                                minLineLength=min_line_length, maxLineGap=max_line_gap)
 
         # Draw detected lines on the image (for visualization)
         line_image = np.zeros_like(image)
         for line in lines:
             x1, y1, x2, y2 = line[0]
-            cv2.line(line_image, (x1, y1), (x2, y2), (255, 255, 255), 2)  # White color
+            cv2.line(line_image, (x1, y1), (x2, y2),
+                     (255, 255, 255), 2)  # White color
 
         return line_image
         # # Display the image with detected lines
         # cv2.imshow("Probabilistic Hough Lines", line_image)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
-    
+
     def detect_horizontal_lines(self, canny_image, original_image):
         # Copy the original image to avoid modifying it
         highlighted_image = original_image.copy()
@@ -77,11 +85,12 @@ class ContaminationMeasurementClass:
                     # Draw the line on the image
                     pt1 = (int(x0 + 1000 * (-b)), int(y0 + 1000 * (a)))
                     pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
-                    cv2.line(highlighted_image, pt1, pt2, (0, 0, 255), 2)  # Red color for lines
+                    cv2.line(highlighted_image, pt1, pt2,
+                             (0, 0, 255), 2)  # Red color for lines
 
         return highlighted_image
-    
-    def scharr(self,image):
+
+    def scharr(self, image):
         # Apply Scharr filter along x-axis
         gradient_x = cv2.Scharr(image, cv2.CV_64F, 1, 0)
 
@@ -98,7 +107,7 @@ class ContaminationMeasurementClass:
         gradient_magnitude = np.uint8(gradient_magnitude)
 
         return gradient_magnitude
-    
+
     def visualize(self, image_list, title_list):
         # Display the images
         plt.figure(figsize=(12, 6))

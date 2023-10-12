@@ -7,75 +7,136 @@ import numpy as np
 from scipy.ndimage import gaussian_laplace
 from PIL import Image
 
-# creates list of image paths from folder
+
+def find_points(image, threshold=80):
+    # Create an empty matrix to store the points
+    mat = np.zeros_like(image)
+
+    # Get height and width for grayscale or color images
+    height, width = image.shape[:2]
+    print(height, width)
+    # Iterate through the columns from left to right
+    for col in range(width):
+        # Iterate through the rows from bottom to top
+        for row in range(height - 1, 0, -1):  # Start from height - 1
+            pixel_value = image[row, col]
+
+            # Check if the row index is within bounds
+            if row - 1 >= 0:
+                subPixelValue = int(image[row - 1, col]) - int(pixel_value)
+                if abs(subPixelValue) > threshold:
+
+                    mat[row, col] = 255
+                    break
+
+    return mat
+
+
 def load_images_from_folder(folder_path):
     # Define a list to store image file paths
     image_paths = []
     # Use the 'glob' function to search for image files in the directory and its subdirectories
     # You can specify different image file extensions like '*.jpg', '*.png', '*.jpeg', etc.
-    image_extensions = ['*.jpg', '*.jpeg', '*.png', '*.gif', '*.bmp', "*.tif"]  # Add more extensions as needed
+    image_extensions = ['*.jpg', '*.jpeg', '*.png', '*.gif',
+                        '*.bmp', "*.tif"]  # Add more extensions as needed
 
     for extension in image_extensions:
-        image_paths.extend(glob.glob(os.path.join(folder_path, '**', extension), recursive=True))
-    
+        image_paths.extend(glob.glob(os.path.join(
+            folder_path, '**', extension), recursive=True))
+
     return image_paths
+
 
 def load_image(image_path):
     return cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
 # cutt off the edges of the image
+
+
 def preprocess_image(image):
-    return image[100:image.shape[0] - 100, 100:image.shape[1] - 200]
+    return image[:-100, :]
     # return image.crop((100, 100, image.width - 100, image.height - 200))
+
 
 def sobel_edge_detection(gray_image):
     # Apply Sobel operator
     sobel_x = cv2.Sobel(gray_image, cv2.CV_64F, 1, 0, ksize=3)
     sobel_y = cv2.Sobel(gray_image, cv2.CV_64F, 0, 1, ksize=3)
-    
+
     # Combine the gradients to find edges
     magnitude = cv2.magnitude(sobel_x, sobel_y)
-    
+
     return magnitude
+
 
 def prewitt_edge_detection(gray_image):
     # Apply Prewitt operator
     prewitt_edges = filters.prewitt(gray_image)
-    
+
     return prewitt_edges
+
 
 def roberts_edge_detection(gray_image):
     # Apply Roberts operator
     roberts_edges = filters.roberts(gray_image)
-    
+
     return roberts_edges
- 
+
+
 def laplacian_of_gaussian(gray_image, sigma=1):
     # Apply the Laplacian of Gaussian (LoG) filter
     log_edges = gaussian_laplace(gray_image, sigma=sigma)
-    
+
     # Adjust the range of values for visualization
-    log_edges = (log_edges - np.min(log_edges)) / (np.max(log_edges) - np.min(log_edges)) * 255
-    
+    log_edges = (log_edges - np.min(log_edges)) / \
+        (np.max(log_edges) - np.min(log_edges)) * 255
+
     # Convert to 8-bit unsigned integer (0-255)
     log_edges = np.uint8(log_edges)
-    
+
     return log_edges
+
+
+def otsu_thresholding(image):
+    # Convert the input image to grayscale if it's not already.
+    if len(image.shape) == 3:
+        image = color.rgb2gray(image)
+
+    # Calculate the gradient magnitude using Sobel filters.
+    gradient_x = np.abs(cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3))
+    gradient_y = np.abs(cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3))
+    gradient_magnitude = np.sqrt(gradient_x ** 2 + gradient_y ** 2)
+
+    # Normalize gradient magnitude to [0, 255]
+    gradient_magnitude = ((gradient_magnitude - np.min(gradient_magnitude)) /
+                          (np.max(gradient_magnitude) - np.min(gradient_magnitude)) * 255).astype(np.uint8)
+
+    # Calculate Otsu's threshold
+    _, thresholded_image = cv2.threshold(
+        gradient_magnitude, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    return thresholded_image
+
 
 def hough_transform_line_detection(image):
     pass
 
+
 def gaussian_smoothing(image, kernel_size=5, sigma=1.4):
     return cv2.GaussianBlur(image, (kernel_size, kernel_size), sigma)
+
 
 def gradient_magnitude(dx, dy):
     return np.sqrt(dx ** 2 + dy ** 2)
 
+
 def gradient_x(image):
     return cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
 
+
 def gradient_y(image):
     return cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
+
 
 def non_maximum_suppression(magnitude, gradient_x, gradient_y):
     height, width = magnitude.shape
@@ -104,15 +165,17 @@ def non_maximum_suppression(magnitude, gradient_x, gradient_y):
 
     return suppressed
 
+
 def hysteresis_threshold(image, low_threshold, high_threshold):
     strong_edges = (image >= high_threshold)
     weak_edges = (image >= low_threshold) & (image < high_threshold)
     return strong_edges, weak_edges
 
+
 def edge_tracking_by_hysteresis(strong_edges, weak_edges):
     height, width = strong_edges.shape
     edge_image = np.zeros((height, width), dtype=np.uint8)
-    
+
     for i in range(1, height - 1):
         for j in range(1, width - 1):
             if strong_edges[i, j]:
@@ -124,15 +187,20 @@ def edge_tracking_by_hysteresis(strong_edges, weak_edges):
 
     return edge_image
 
+
 def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, sigma=1.4):
     smoothed_image = gaussian_smoothing(image, kernel_size, sigma)
     gradient_x_image = gradient_x(smoothed_image)
     gradient_y_image = gradient_y(smoothed_image)
-    gradient_magnitude_image = gradient_magnitude(gradient_x_image, gradient_y_image)
-    suppressed_image = non_maximum_suppression(gradient_magnitude_image, gradient_x_image, gradient_y_image)
-    strong_edges, weak_edges = hysteresis_threshold(suppressed_image, low_threshold, high_threshold)
+    gradient_magnitude_image = gradient_magnitude(
+        gradient_x_image, gradient_y_image)
+    suppressed_image = non_maximum_suppression(
+        gradient_magnitude_image, gradient_x_image, gradient_y_image)
+    strong_edges, weak_edges = hysteresis_threshold(
+        suppressed_image, low_threshold, high_threshold)
     edge_image = edge_tracking_by_hysteresis(strong_edges, weak_edges)
     return edge_image
+
 
 def plot_histogram(image_path):
     # Load the image in grayscale
@@ -148,7 +216,8 @@ def plot_histogram(image_path):
     plt.ylabel('Frequency')
     plt.title('Histogram')
     plt.show()
-    
+
+
 def Get_Image_With_Most_frequent_Pixel_Red(image_path):
     # Load the image in grayscale
     image = load_image(image_path)
@@ -164,8 +233,8 @@ def Get_Image_With_Most_frequent_Pixel_Red(image_path):
     color_image = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.uint8)
 
     # Set pixels with the mode value to red
-    color_image[image == mode_pixel_value] = [255,255,255]  # White color
-    
+    color_image[image == mode_pixel_value] = [255, 255, 255]  # White color
+
     plt.figure(figsize=(12, 6))
 
     # Plot the source grayscale image on the left
@@ -173,7 +242,7 @@ def Get_Image_With_Most_frequent_Pixel_Red(image_path):
     plt.imshow(image, cmap='gray')
     plt.axis('off')
     plt.title('Source Grayscale Image')
-    
+
     # Display the color image
     plt.subplot(1, 2, 2)
     plt.imshow(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))
@@ -185,34 +254,44 @@ def Get_Image_With_Most_frequent_Pixel_Red(image_path):
 def blurring(img):
     return apply_gaussian_blur(img)
 
+
 def apply_gaussian_blur(image, kernel_size=(5, 5), sigma_x=0):
     blurred_image = cv2.GaussianBlur(image, kernel_size, sigma_x)
     return blurred_image
 
-def apply_median_blur(image, kernel_size = 5):
+
+def apply_median_blur(image, kernel_size=5):
     blurred_image = cv2.medianBlur(image, kernel_size)
     return blurred_image
 
-def apply_bilateral_filter(image, d=9,simgaColor=75,sigmaSpace=75):#this One looks like working the best
+
+# this One looks like working the best
+def apply_bilateral_filter(image, d=9, simgaColor=75, sigmaSpace=75):
     blurred_image = cv2.bilateralFilter(image, d, simgaColor, sigmaSpace)
     return blurred_image
 
-def apply_fastNlMeansDenoisingColored(image ):
+
+def apply_fastNlMeansDenoisingColored(image):
     pass
+
 
 def thresholding(img, thresh=127, maxval=255, type=cv2.THRESH_BINARY):
     ret, thresholding = cv2.threshold(img, thresh, maxval, type)
     return thresholding
 
+
 def adaptive_threshold(image, block_size=31, c=-10):
     # Apply adaptive thresholding
-    thresholded = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, c)
+    thresholded = cv2.adaptiveThreshold(
+        image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, c)
     return thresholded
+
 
 def parallel_shift_denoise(image, shift_direction=(1, 1)):
     shifted_image = np.roll(image, shift_direction, axis=(0, 1))
     denoised_image = (image + shifted_image) / 2
     return denoised_image
+
 
 def post_process_contamination(detected_contamination):
     pass
