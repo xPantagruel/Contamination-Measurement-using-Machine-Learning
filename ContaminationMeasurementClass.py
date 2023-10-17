@@ -7,25 +7,29 @@ class ContaminationMeasurementClass:
     def measure_contamination(self, image_path):
         image = load_image(image_path)
         preprocessed_image = self.cutt_off_edges(image)
-        app = ImageThresholdingApp(preprocessed_image)
-        app.create_window()
-        # blurred_image = self.blur_image(preprocessed_image)
-        # # thresholded_image1 = thresholding(blurred_image, 100, 255, cv2.THRESH_BINARY_INV)
-        # # adaptive_threshold_image = adaptive_threshold(blurred_image)
-        # thresholded_image = thresholding(preprocessed_image)
-        # # thresholded_image1 = thresholding(blurred_image)
-        # # thresholded_image = otsu_thresholding(thresholded_image1)
+        # app = ImageThresholdingApp(preprocessed_image)
+        # app.create_window()
+        blurred_image = self.blur_image(preprocessed_image)
+        # thresholded_image1 = thresholding(blurred_image, 100, 255, cv2.THRESH_BINARY_INV)
+        # adaptive_threshold_image = adaptive_threshold(blurred_image)
+        thresholded_image1 = thresholding(
+            preprocessed_image, 96, 255, cv2.THRESH_TOZERO)
+        # thresholded_image2 = thresholding(thresholded_image1)
+        # thresholded_image = otsu_thresholding(thresholded_image1)
+        # thresholded_image = adaptive_threshold(thresholded_image1)
+        thresholded_image = thresholding(
+            thresholded_image1, 100, 255, cv2.THRESH_TRUNC)
 
-        # canny_image = self.detect_edges(thresholded_image)
-        # scharr_image = self.scharr(thresholded_image)
+        canny_image = self.detect_edges(thresholded_image)
+        scharr_image = self.scharr(thresholded_image)
 
-        # # Visualization
-        # images_to_visualize = [image, preprocessed_image,
-        #                        thresholded_image, canny_image, scharr_image,]
-        # titles = ["Original Image", "Preprocessed Image",
-        #           "thresholded_image1", "Thresholded Image", "Scharr Edge Detection"]
+        # Visualization
+        images_to_visualize = [image, preprocessed_image,
+                               thresholded_image1, thresholded_image, scharr_image,]
+        titles = ["Original Image", "Preprocessed Image",
+                  "thresholded_image1", "Thresholded Image", "Scharr Edge Detection"]
 
-        # self.visualize(images_to_visualize, titles)
+        self.visualize(images_to_visualize, titles)
 
         # image = load_image(image_path)
         # preprocessed_image = self.cutt_off_edges(image)

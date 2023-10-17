@@ -8,8 +8,8 @@ class ImageThresholdingApp:
         if self.image is None:
             raise ValueError("Image not found or could not be loaded.")
 
-        self.threshold_type = cv2.THRESH_BINARY_INV
-        self.threshold_value = 158
+        self.threshold_type = cv2.THRESH_TOZERO
+        self.threshold_value = 96
 
         self.create_window()
 

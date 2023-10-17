@@ -7,7 +7,7 @@ from PIL import Image
 if __name__ == "__main__":
     # use this directory and the folder images
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "images")
+    folder_path = os.path.join(current_directory, "images/Default")
 
     # Load images
     image_paths = load_images_from_folder(folder_path)
