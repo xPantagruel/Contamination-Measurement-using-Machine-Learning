@@ -7,16 +7,16 @@ class ContaminationMeasurementClass:
     def measure_contamination(self, image_path):
         image = load_image(image_path)
         preprocessed_image = self.cutt_off_edges(image)
-        # app = ImageThresholdingApp(preprocessed_image)
-        # app.create_window()
-        blurred_image = self.blur_image(preprocessed_image)
-        # thresholded_image1 = thresholding(blurred_image, 100, 255, cv2.THRESH_BINARY_INV)
-        # adaptive_threshold_image = adaptive_threshold(blurred_image)
+        removed_background_image, edge_values = remove_background_above_Tin_Ball(preprocessed_image, threshold=260)
+
+        start_indices, end_indices = find_start_end_indices(edge_values)
+        print("Start Indices:", start_indices)
+        print("End Indices:", end_indices)
+        kernel_size = 11
+        blurred_image = cv2.GaussianBlur(
+            removed_background_image, (kernel_size, kernel_size), 0)
         thresholded_image1 = thresholding(
-            preprocessed_image, 96, 255, cv2.THRESH_TOZERO)
-        # thresholded_image2 = thresholding(thresholded_image1)
-        # thresholded_image = otsu_thresholding(thresholded_image1)
-        # thresholded_image = adaptive_threshold(thresholded_image1)
+            blurred_image, 96, 255, cv2.THRESH_TOZERO)
         thresholded_image = thresholding(
             thresholded_image1, 100, 255, cv2.THRESH_TRUNC)
 
@@ -24,16 +24,37 @@ class ContaminationMeasurementClass:
         scharr_image = self.scharr(thresholded_image)
 
         # Visualization
-        images_to_visualize = [image, preprocessed_image,
-                               thresholded_image1, thresholded_image, scharr_image,]
-        titles = ["Original Image", "Preprocessed Image",
-                  "thresholded_image1", "Thresholded Image", "Scharr Edge Detection"]
+        images_to_visualize = [image,
+                               thresholded_image1, thresholded_image, scharr_image, removed_background_image]
+        titles = ["Original Image",
+                  "thresholded_image1", "Thresholded Image", "Scharr Edge Detection", "removed_background_image"]
 
         self.visualize(images_to_visualize, titles)
 
-        # image = load_image(image_path)
-        # preprocessed_image = self.cutt_off_edges(image)
-        # adaptive_threshold_gui(preprocessed_image)
+    def measure_contamination2(self, image_path):
+        image = load_image(image_path)
+        preprocessed_image = self.cutt_off_edges(image)
+        kernel_size = 11
+        blurred_image = cv2.GaussianBlur(
+            preprocessed_image, (kernel_size, kernel_size), 0)
+        cv2.imshow("blurred_image", blurred_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        # # use threshold for getting ROI
+        # app = ImageThresholdingApp(preprocessed_image)
+        # app.create_window()
+        
+    def measure_contamination3(self, image_path):
+        image = load_image(image_path)
+        preprocessed_image = self.cutt_off_edges(image)
+        removed_background_image, edge_values = remove_background_above_Tin_Ball(preprocessed_image, threshold=260)
+        # Replace "images" with "removed_background_image" in the image_path
+        new_image_path = os.path.join(os.path.dirname(image_path), "removed_background_image", os.path.basename(image_path))
+        
+        # Now you can use new_image_path for further processing or saving.
+        # For example, if you want to save the processed image:
+        save_image(new_image_path, removed_background_image)
+        
 
     def cutt_off_edges(self, image):
         return preprocess_image(image)

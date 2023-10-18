@@ -7,6 +7,140 @@ import numpy as np
 from scipy.ndimage import gaussian_laplace
 from PIL import Image
 
+def save_image(image, file_path, format="PNG"):
+    try:
+        image.save(file_path, format)
+        print(f"Image saved to {file_path}")
+    except Exception as e:
+        print(f"Error saving the image: {e}")
+        
+# def remove_background_above_Tin_Ball(image, threshold=260, num_pixels_behind=5, num_pixels_ahead=5):
+#     # Get the dimensions of the image
+#     height, width = image.shape
+
+#     # Create a copy of the image to store the result
+#     result_image = image.copy()
+#     print(height, width)
+#     # Iterate through each column
+#     for col in range(width):
+#         # Iterate through each row from bottom to top
+#         for row in range(height - num_pixels_ahead, num_pixels_ahead, -1):
+#             # Calculate the sum of the pixel values above the current pixel
+#             sum_above = int(np.sum(
+#                 image[max(0, row - num_pixels_behind):row, col]))
+#             # Calculate the sum of the pixel values below the current pixel
+#             sum_below = int(np.sum(
+#                 image[row + 1:min(height, row + num_pixels_ahead + 1), col]))
+#             # Check if the sum of the pixel values above and below the current pixel is greater than the threshold
+#             if (int(sum_below) - int(sum_above)) > threshold:
+#                 # Set all pixels below the current pixel to zero
+#                 # print("row:", row, "col:", col, "value:",
+#                 #       abs(sum_below - sum_above))
+#                 result_image[:row + 1, col] = 0
+#                 break
+
+#         # if (col == 30):
+#         #     break
+#     return result_image
+
+def remove_background_above_Tin_Ball(image, threshold=260, num_pixels_behind=5, num_pixels_ahead=5):
+    # Get the dimensions of the image
+    height, width = image.shape
+
+    # Create a copy of the image to store the result
+    result_image = image.copy()
+    edge_values = []
+    found = False
+    # Iterate through each column
+    for col in range(width):
+        # Iterate through each row from bottom to top
+        for row in range(height - num_pixels_ahead, num_pixels_ahead, -1):
+            # Calculate the sum of the pixel values above the current pixel
+            sum_above = int(np.sum(
+                image[max(0, row - num_pixels_behind):row, col]))
+            # Calculate the sum of the pixel values below the current pixel
+            sum_below = int(np.sum(
+                image[row + 1:min(height, row + num_pixels_ahead + 1), col]))
+            # Check if the sum of the pixel values above and below the current pixel is greater than the threshold
+            if (int(sum_below) - int(sum_above)) > threshold:
+                # Set all pixels below the current pixel to zero
+                # print("row:", row, "col:", col, "value:",
+                #       abs(sum_below - sum_above))
+                edge_values += [row]
+                found = True
+                result_image[:row + 1, col] = 0
+                break
+
+        if (found):
+            found = False
+            continue
+        else:
+            edge_values += [0]
+
+    # print(edge_values)
+    return result_image, edge_values
+
+
+def find_start_end_indices(data, window_size=10, threshold = 200):
+    window_sum = []
+    potential_start_indices = []
+    potential_end_indices = []
+
+    # Iterate through the data
+    for index in range(len(data) - window_size):
+        # get the sum of substraction window
+        window_sum_x = np.sum(data[index:index + window_size])
+        window_sum.append(window_sum_x)
+    
+    # go through the window sum and find the start and end indice, it should start when there will be a bigger jump from the previous value
+    # and it should end when there will be a bigger jump from the next value
+    for index in range(len(window_sum) - 1):
+        if (window_sum[index] - window_sum[index + 1] > threshold):
+            potential_start_indices.append(index)
+            
+    #find end but go from the end of the list
+    for index in range(len(window_sum) - 1, 0, -1):
+        if (window_sum[index] - window_sum[index - 1] > threshold):
+            potential_end_indices.append(index)
+    
+    
+    return potential_start_indices, potential_end_indices
+
+
+def find_and_draw_contours(image):
+    # Find contours in the grayscale image
+    contours, _ = cv2.findContours(
+        image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Draw the contours on a copy of the original image
+    image_with_contours = image
+    cv2.drawContours(image_with_contours, contours, -1, (0, 255, 0), 2)
+
+    return image_with_contours
+
+
+def Take_10_pixels_In_Each_Row_And_Put_Them_In_Csv(image):
+    height, width = image.shape[:2]
+
+    window_size = 10  # You want to sum 10 consecutive pixels
+    mat = np.zeros((height, width - window_size + 1), dtype=np.uint16)
+
+    for row in range(height):
+        for col in range(width - window_size + 1):
+            # Extract a window of 10 pixels
+            window = image[row, col:col + window_size]
+
+            # Calculate the sum of the pixel values in the window
+            pixel_sum = np.sum(window)
+            if (pixel_sum > 1500):
+                mat[row, col] = pixel_sum
+
+    # Convert the 'mat' array to a NumPy array
+    mat_as_np_array = np.array(mat)
+
+    # Save the NumPy array to a CSV file
+    np.savetxt('output.csv', mat_as_np_array, delimiter=',', fmt='%.2f')
+
 
 def find_points(image, threshold=80):
     # Create an empty matrix to store the points
@@ -54,7 +188,7 @@ def load_image(image_path):
 
 
 def preprocess_image(image):
-    return image[:-100, :]
+    return image[:-200, :]
     # return image.crop((100, 100, image.width - 100, image.height - 200))
 
 

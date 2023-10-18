@@ -7,7 +7,7 @@ from PIL import Image
 if __name__ == "__main__":
     # use this directory and the folder images
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "images/Default")
+    folder_path = os.path.join(current_directory, "images")
 
     # Load images
     image_paths = load_images_from_folder(folder_path)
@@ -17,6 +17,6 @@ if __name__ == "__main__":
     print("Starting ...")
     for image_path in image_paths:
         print("Processing image: " + image_path)
-        contamination_measurement.measure_contamination(image_path)
+        contamination_measurement.measure_contamination3(image_path)
 
     print("Finished ...")
