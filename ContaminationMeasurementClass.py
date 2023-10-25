@@ -7,14 +7,9 @@ class ContaminationMeasurementClass:
     def measure_contamination(self, image_path):
         image = load_image(image_path)
         preprocessed_image = self.cutt_off_edges(image)
-        removed_background_image, edge_values = remove_background_above_Tin_Ball(preprocessed_image, threshold=260)
-
-        start_indices, end_indices = find_start_end_indices(edge_values)
-        print("Start Indices:", start_indices)
-        print("End Indices:", end_indices)
         kernel_size = 11
         blurred_image = cv2.GaussianBlur(
-            removed_background_image, (kernel_size, kernel_size), 0)
+            preprocessed_image, (kernel_size, kernel_size), 0)
         thresholded_image1 = thresholding(
             blurred_image, 96, 255, cv2.THRESH_TOZERO)
         thresholded_image = thresholding(
@@ -25,36 +20,91 @@ class ContaminationMeasurementClass:
 
         # Visualization
         images_to_visualize = [image,
-                               thresholded_image1, thresholded_image, scharr_image, removed_background_image]
+                               thresholded_image1, thresholded_image, scharr_image, thresholded_image1]
         titles = ["Original Image",
-                  "thresholded_image1", "Thresholded Image", "Scharr Edge Detection", "removed_background_image"]
+                  "thresholded_image1", "Thresholded Image", "Scharr Edge Detection", "thresholded_image1"]
 
         self.visualize(images_to_visualize, titles)
 
     def measure_contamination2(self, image_path):
         image = load_image(image_path)
         preprocessed_image = self.cutt_off_edges(image)
+        # removed_background_image, edge_values = remove_background_above_Tin_Ball(
+        #     preprocessed_image, threshold=260)
+
+        # start_indices, end_indices = find_start_end_indices(edge_values)
+        # print("Start Indices:", start_indices)
+        # print("End Indices:", end_indices)
         kernel_size = 11
         blurred_image = cv2.GaussianBlur(
             preprocessed_image, (kernel_size, kernel_size), 0)
-        cv2.imshow("blurred_image", blurred_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        # # use threshold for getting ROI
-        # app = ImageThresholdingApp(preprocessed_image)
-        # app.create_window()
-        
+        thresholded_image1 = thresholding(
+            blurred_image, 96, 255, cv2.THRESH_TOZERO)
+        thresholded_image = thresholding(
+            thresholded_image1, 100, 255, cv2.THRESH_TRUNC)
+        removed_background_image, edge_values = remove_background_above_Tin_Ball(
+            thresholded_image, threshold=260)
+        canny_image = self.detect_edges(thresholded_image)
+        scharr_image = self.scharr(removed_background_image)
+
+        # Visualization
+        images_to_visualize = [image,
+                               thresholded_image1, thresholded_image, scharr_image, removed_background_image]
+        titles = ["Original Image",
+                  "thresholded_image1", "Thresholded Image", "Scharr Edge Detection", "removed_background_image"]
+
+        self.visualize(images_to_visualize, titles)
+
     def measure_contamination3(self, image_path):
         image = load_image(image_path)
         preprocessed_image = self.cutt_off_edges(image)
-        removed_background_image, edge_values = remove_background_above_Tin_Ball(preprocessed_image, threshold=260)
-        # Replace "images" with "removed_background_image" in the image_path
-        new_image_path = os.path.join(os.path.dirname(image_path), "removed_background_image", os.path.basename(image_path))
-        
-        # Now you can use new_image_path for further processing or saving.
-        # For example, if you want to save the processed image:
-        save_image(new_image_path, removed_background_image)
-        
+        removed_background_image, edge_values = remove_background_above_Tin_Ball(
+            preprocessed_image, threshold=260)
+        # Replace "images" with "removed_background_image" in the image path
+        new_image_path = os.path.join(os.path.dirname(
+            image_path), "removed_background_image", os.path.basename(image_path))
+
+        # Save the processed image
+        # Assuming 'removed_background_image' is a valid NumPy array
+        save_image(removed_background_image, new_image_path)
+
+    def measure_contamination4(self, image_path):
+        image = load_image(image_path)
+        preprocessed_image = self.cutt_off_edges(image)
+        canny_image = canny_edge_detection(
+            preprocessed_image.copy(), 45, 50, 7, 2)
+        # contours = find_and_draw_contours(canny_image, preprocessed_image)
+        # Get minimum of tin ball in image height
+        TinBallEdgeLeft = get_mode_height_of_tin_ball_left_side(canny_image)
+        TinBallEdgeRight = get_mode_height_of_tin_ball_right_side(canny_image)
+
+        print("TinBallEdgeLeft: ", TinBallEdgeLeft)
+        print("TinBallEdgeRight: ", TinBallEdgeRight)
+
+        kernel_size = 11
+        blurred_image = cv2.GaussianBlur(
+            preprocessed_image, (kernel_size, kernel_size), 0)
+        thresholded_image1 = thresholding(
+            blurred_image, 96, 255, cv2.THRESH_TOZERO)
+        thresholded_image = thresholding(
+            thresholded_image1, 100, 255, cv2.THRESH_TRUNC)
+
+        canny_image2 = self.detect_edges(thresholded_image)
+        scharr_image2 = self.scharr(thresholded_image)
+
+        # Get high of contamination
+        MaxY = TinBallEdgeLeft > TinBallEdgeRight and TinBallEdgeLeft or TinBallEdgeRight
+
+        contamination_high = get_contamination_high(scharr_image2, MaxY)
+        print("contamination_high: ", contamination_high)
+
+        # Visualization
+        images_to_visualize = [image,
+                               blurred_image, thresholded_image, scharr_image2, canny_image2]
+        titles = ["Original Image",
+                  "blurred_image", "Thresholded Image", "Scharr Edge Detection", "canny_image"]
+
+        self.visualize(images_to_visualize, titles)
 
     def cutt_off_edges(self, image):
         return preprocess_image(image)

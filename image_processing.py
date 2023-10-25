@@ -6,42 +6,151 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.ndimage import gaussian_laplace
 from PIL import Image
+from statistics import mode
+
+# starts in the middle and goes from bottom of the image to the top and finds the first white pixel, and go like that once in direction right and once in direction left
+def get_contamination_high(image, maxY):
+    img = image.copy()
+
+    # Get the height and width of the image
+    height, width = img.shape
+
+    # Initialize variables to store the y values for each direction
+    center_x = width // 2  # Start from the center column
+    center_y = height - 1  # Start from the bottom row
+    left_x = center_x - 100  # 100 columns to the left
+    right_x = center_x + 100  # 100 columns to the right
+
+    # Function to find the most common y value while moving up
+    def find_most_common_y(x_start, x_end):
+        y_values = []
+
+        for x in range(x_start, x_end):
+            y = height - 1  # Start from the bottom row
+            while y >= 0:
+                pixel_value = img[y, x]
+                if pixel_value > 150:  # Adjust the threshold value as needed
+                    y_values.append(y)
+                    break
+                y -= 1
+
+        if y_values:
+            # Calculate the mode (the value that appears most frequently) of the y values
+            mode_y = max(set(y_values), key=y_values.count)
+        else:
+            mode_y = -1  # You can choose an appropriate default value
+
+        return mode_y
+
+    # Find the most common y value in the center column
+    center_result = find_most_common_y(center_x, center_x + 1)
+
+    # Find the most common y value while moving to the right
+    right_result = find_most_common_y(center_x, right_x + 1)
+
+    # Find the most common y value while moving to the left
+    left_result = find_most_common_y(left_x, center_x + 1)
+
+    # find mode of these 3
+    modeY = mode([center_result, right_result, left_result])
+    print("modeY:", modeY)
+    return modeY
+
+
+def find_and_draw_contours(image, PreImage):
+    # Find the contours
+    contours, _ = cv2.findContours(
+        image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Draw the contours
+    image_copy = image.copy()
+    cv2.drawContours(image_copy, contours, -1, (255, 0, 255), 2)
+
+    return image_copy
+
+
+def get_mode_height_of_tin_ball_left_side(image):
+    img = image.copy()
+
+    # Get the height and width of the image
+    height, width = img.shape
+
+    # Initialize variables to keep track of the minimum pixel value and its coordinates
+    min_pixel_values = []
+    pixel_height = 0
+
+    # Iterate through the first 10 columns and all rows from bottom to top
+    for x in range(10):  # First 10 columns
+        for y in range(height - 1, -1, -1):  # Iterate from the bottom to the top
+            pixel_value = img[y, x]
+            if pixel_value > 150:
+                min_pixel_values.insert(0, y)
+                break
+
+    if (min_pixel_values):
+        # median from all
+        pixel_height = mode(min_pixel_values)
+    return pixel_height
+
+
+def get_mode_height_of_tin_ball_right_side(image):
+    img = image.copy()
+
+    # Get the height and width of the image
+    height, width = img.shape
+
+    # Initialize a list to store the pixel heights of white pixels
+    white_pixel_heights = []
+
+    # Iterate through the last 10 columns and all rows from the bottom to the top
+    for x in range(width - 10, width):  # Last 10 columns
+        for y in range(height - 1, -1, -1):  # Iterate from the bottom to the top
+            pixel_value = img[y, x]
+            if pixel_value > 150:  # Adjust the threshold value as needed
+                white_pixel_heights.append(y)
+                break
+
+    if white_pixel_heights:
+        # Calculate the mode (the value that appears most frequently) of the white pixel heights
+        mode_height = max(set(white_pixel_heights),
+                          key=white_pixel_heights.count)
+    else:
+        # If no white pixels are found, return a default value (you can change this as needed)
+        mode_height = -1  # You can choose an appropriate default value
+
+    return mode_height
+
+
+def GetBottomLineOfContamination(image):
+    height = 0
+    # get first white occurence from the bottom left
+    for row in range(image.shape[0] - 1, 0, -1):
+        for col in range(image.shape[1]):
+            if (image[row, col] > 100):
+                height = row
+                break
+        if (height != 0):
+            break
+    print("height:", height)
+    return height
+
 
 def save_image(image, file_path, format="PNG"):
     try:
-        image.save(file_path, format)
-        print(f"Image saved to {file_path}")
+        if isinstance(image, np.ndarray):
+            # Check if the specified format is supported by OpenCV
+            valid_formats = ['PNG', 'JPEG', 'JPG', 'TIFF']
+            if format.upper() in valid_formats:
+                cv2.imwrite(file_path, image)
+                print(f"Image saved to {file_path}")
+            else:
+                print(
+                    f"Error saving the image: Unsupported image format '{format}'")
+        else:
+            print("Error saving the image: Invalid image format")
     except Exception as e:
         print(f"Error saving the image: {e}")
-        
-# def remove_background_above_Tin_Ball(image, threshold=260, num_pixels_behind=5, num_pixels_ahead=5):
-#     # Get the dimensions of the image
-#     height, width = image.shape
 
-#     # Create a copy of the image to store the result
-#     result_image = image.copy()
-#     print(height, width)
-#     # Iterate through each column
-#     for col in range(width):
-#         # Iterate through each row from bottom to top
-#         for row in range(height - num_pixels_ahead, num_pixels_ahead, -1):
-#             # Calculate the sum of the pixel values above the current pixel
-#             sum_above = int(np.sum(
-#                 image[max(0, row - num_pixels_behind):row, col]))
-#             # Calculate the sum of the pixel values below the current pixel
-#             sum_below = int(np.sum(
-#                 image[row + 1:min(height, row + num_pixels_ahead + 1), col]))
-#             # Check if the sum of the pixel values above and below the current pixel is greater than the threshold
-#             if (int(sum_below) - int(sum_above)) > threshold:
-#                 # Set all pixels below the current pixel to zero
-#                 # print("row:", row, "col:", col, "value:",
-#                 #       abs(sum_below - sum_above))
-#                 result_image[:row + 1, col] = 0
-#                 break
-
-#         # if (col == 30):
-#         #     break
-#     return result_image
 
 def remove_background_above_Tin_Ball(image, threshold=260, num_pixels_behind=5, num_pixels_ahead=5):
     # Get the dimensions of the image
@@ -81,7 +190,7 @@ def remove_background_above_Tin_Ball(image, threshold=260, num_pixels_behind=5, 
     return result_image, edge_values
 
 
-def find_start_end_indices(data, window_size=10, threshold = 200):
+def find_start_end_indices(data, window_size=10, threshold=200):
     window_sum = []
     potential_start_indices = []
     potential_end_indices = []
@@ -91,32 +200,19 @@ def find_start_end_indices(data, window_size=10, threshold = 200):
         # get the sum of substraction window
         window_sum_x = np.sum(data[index:index + window_size])
         window_sum.append(window_sum_x)
-    
+
     # go through the window sum and find the start and end indice, it should start when there will be a bigger jump from the previous value
     # and it should end when there will be a bigger jump from the next value
     for index in range(len(window_sum) - 1):
         if (window_sum[index] - window_sum[index + 1] > threshold):
             potential_start_indices.append(index)
-            
-    #find end but go from the end of the list
+
+    # find end but go from the end of the list
     for index in range(len(window_sum) - 1, 0, -1):
         if (window_sum[index] - window_sum[index - 1] > threshold):
             potential_end_indices.append(index)
-    
-    
+
     return potential_start_indices, potential_end_indices
-
-
-def find_and_draw_contours(image):
-    # Find contours in the grayscale image
-    contours, _ = cv2.findContours(
-        image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Draw the contours on a copy of the original image
-    image_with_contours = image
-    cv2.drawContours(image_with_contours, contours, -1, (0, 255, 0), 2)
-
-    return image_with_contours
 
 
 def Take_10_pixels_In_Each_Row_And_Put_Them_In_Csv(image):
