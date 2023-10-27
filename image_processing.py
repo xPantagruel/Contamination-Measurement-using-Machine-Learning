@@ -8,8 +8,93 @@ from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
 
+# go up from bottom of contamination and when you find big jump in pixel value, that is the end of contamination and do this in each direction for 30 pixels and then find the mode of these 3 values
+
+
+def Get_Contamination_Height(image, middleOfContamination, bottomOfContamination, maxY):
+    top = -1
+    arrayWithPotentialTops = []
+    start_x = middleOfContamination - 20
+    end_x = middleOfContamination + 20
+
+    for x in range(start_x, end_x):
+        for y in range(bottomOfContamination-10, 0, -1):
+            pixel_value = image[y, x]
+            if pixel_value > 150:
+                arrayWithPotentialTops.insert(0, y)
+                break
+
+    if (arrayWithPotentialTops):
+        top = mode(arrayWithPotentialTops)
+
+    print("top of Contamination:", top)
+    return top
+
+
+def get_contamination_range(image, maxY):
+    img = image.copy()
+
+    # Get the height and width of the image
+    height, width = img.shape
+
+    # Initialize variables to store the y values for each direction
+    center_x = width // 2  # Start from the center column
+    left_x = center_x - 400  # 100 columns to the left
+    right_x = center_x + 400  # 100 columns to the right
+
+    def findEdgeToRight(middle, x_end):
+        end_x = -1  # Initialize the end position
+        x = middle
+        while x < x_end:
+            x += 1
+            y = height - 1  # Start from the bottom row
+            while y >= maxY:
+                y -= 1
+                if y < maxY:
+                    return end_x
+
+                pixel_value = img[y, x]
+                if pixel_value > 150 and y > maxY:
+                    end_x = x
+                    break
+
+        return end_x
+
+    def findEdgeToLeft(x_start, middle):
+        end_x = -1  # Initialize the end position
+        x = middle
+        while x > x_start:
+            x -= 1
+            y = height - 1  # Start from the bottom row
+            while y >= maxY:
+                y -= 1
+                if y < maxY:
+                    return end_x
+
+                pixel_value = img[y, x]
+                if pixel_value > 150 and y > maxY:
+                    end_x = x
+                    break
+
+        return end_x
+
+    # Find the start and end positions of contamination while moving to the right
+    right_end = findEdgeToRight(center_x, right_x + 1)
+
+    # Find the start and end positions of contamination while moving to the left
+    left_end = findEdgeToLeft(left_x, center_x + 1)
+
+    print("Start of contamination:", left_end)
+    print("End of contamination:", right_end)
+
+    print("width:", right_end - left_end)
+    middle = ((right_end - left_end) // 2) + left_end
+    print("middle:", middle)
+    return left_end, right_end, middle
+
+
 # starts in the middle and goes from bottom of the image to the top and finds the first white pixel, and go like that once in direction right and once in direction left
-def get_contamination_high(image, maxY):
+def get_contamination_bottom_height(image, maxY):
     img = image.copy()
 
     # Get the height and width of the image

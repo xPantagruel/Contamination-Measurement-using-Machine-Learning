@@ -58,15 +58,22 @@ class ContaminationMeasurementClass:
     def measure_contamination3(self, image_path):
         image = load_image(image_path)
         preprocessed_image = self.cutt_off_edges(image)
-        removed_background_image, edge_values = remove_background_above_Tin_Ball(
-            preprocessed_image, threshold=260)
+        # removed_background_image, edge_values = remove_background_above_Tin_Ball(
+        #     preprocessed_image, threshold=260)
+        kernel_size = 11
+        blurred_image = cv2.GaussianBlur(
+            preprocessed_image, (kernel_size, kernel_size), 0)
+        thresholded_image1 = thresholding(
+            blurred_image, 96, 255, cv2.THRESH_TOZERO)
+        thresholded_image = thresholding(
+            thresholded_image1, 100, 255, cv2.THRESH_TRUNC)
         # Replace "images" with "removed_background_image" in the image path
         new_image_path = os.path.join(os.path.dirname(
-            image_path), "removed_background_image", os.path.basename(image_path))
+            image_path), "thresholdedImages", os.path.basename(image_path))
 
         # Save the processed image
         # Assuming 'removed_background_image' is a valid NumPy array
-        save_image(removed_background_image, new_image_path)
+        save_image(thresholded_image, new_image_path)
 
     def measure_contamination4(self, image_path):
         image = load_image(image_path)
@@ -92,11 +99,21 @@ class ContaminationMeasurementClass:
         canny_image2 = self.detect_edges(thresholded_image)
         scharr_image2 = self.scharr(thresholded_image)
 
-        # Get high of contamination
-        MaxY = TinBallEdgeLeft > TinBallEdgeRight and TinBallEdgeLeft or TinBallEdgeRight
+        # Get high of tin ball
+        if (TinBallEdgeLeft > TinBallEdgeRight):
+            MaxY = TinBallEdgeLeft
+        else:
+            MaxY = TinBallEdgeRight
 
-        contamination_high = get_contamination_high(scharr_image2, MaxY)
-        print("contamination_high: ", contamination_high)
+        print("MaxY: ", MaxY)
+        BottomOfContamination = get_contamination_bottom_height(
+            scharr_image2, MaxY)
+        print("contamination_high: ", BottomOfContamination)
+
+        LeftSideContamination, RightSideContamination, middleOfContamination = get_contamination_range(
+            scharr_image2, MaxY)
+        
+        TopContamination = Get_Contamination_Height(scharr_image2, middleOfContamination, BottomOfContamination, MaxY)
 
         # Visualization
         images_to_visualize = [image,
