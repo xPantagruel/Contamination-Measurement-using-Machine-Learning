@@ -2,7 +2,6 @@ from matplotlib.pyplot import imshow
 from image_processing import *
 from helper_class import *
 
-
 class ContaminationMeasurementClass:
     def measure_contamination(self, image_path):
         image = load_image(image_path)
@@ -108,20 +107,34 @@ class ContaminationMeasurementClass:
         print("MaxY: ", MaxY)
         BottomOfContamination = get_contamination_bottom_height(
             scharr_image2, MaxY)
-        print("contamination_high: ", BottomOfContamination)
+        print("contamination_bottom: ", BottomOfContamination)
 
         LeftSideContamination, RightSideContamination, middleOfContamination = get_contamination_range(
             scharr_image2, MaxY)
         
         TopContamination = Get_Contamination_Height(scharr_image2, middleOfContamination, BottomOfContamination, MaxY)
+        
+        ContaminationHeight = BottomOfContamination - TopContamination
 
-        # Visualization
-        images_to_visualize = [image,
-                               blurred_image, thresholded_image, scharr_image2, canny_image2]
-        titles = ["Original Image",
-                  "blurred_image", "Thresholded Image", "Scharr Edge Detection", "canny_image"]
+        # # Visualization
+        # images_to_visualize = [image,
+        #                        blurred_image, thresholded_image, scharr_image2, canny_image2]
+        # titles = ["Original Image",
+        #           "blurred_image", "Thresholded Image", "Scharr Edge Detection", "canny_image"]
 
-        self.visualize(images_to_visualize, titles)
+        # self.visualize(images_to_visualize, titles)
+
+        # # Visualization of image with detected lines
+        # VisualizeBottomAndTopOfContamination = image.copy()
+        # cv2.line(VisualizeBottomAndTopOfContamination, (0, TopContamination),
+        #          (VisualizeBottomAndTopOfContamination.shape[1], TopContamination), (255, 255, 255), 2)
+        # cv2.line(VisualizeBottomAndTopOfContamination, (0, BottomOfContamination),
+        #             (VisualizeBottomAndTopOfContamination.shape[1], BottomOfContamination), (255, 255, 255), 2)
+        # cv2.imshow("VisualizeBottomAndTopOfContamination", VisualizeBottomAndTopOfContamination)
+        # cv2.waitKey(0)
+
+
+        return BottomOfContamination, TopContamination
 
     def cutt_off_edges(self, image):
         return preprocess_image(image)
