@@ -8,9 +8,101 @@ from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
 
+def histogram_normalization(image):
+    # Convert the image to grayscale if it's a color image
+    gray = image
+
+    # Calculate the histogram of the image
+    hist, _ = np.histogram(gray.flatten(), 256, [0, 256])
+
+    # Calculate the cumulative distribution function (CDF) of the histogram
+    cdf = hist.cumsum()
+    cdf_normalized = cdf * hist.max() / cdf.max()
+
+    # Perform histogram normalization
+    normalized_image = np.interp(gray.flatten(), range(256), cdf_normalized).reshape(gray.shape)
+
+    # # Display original and normalized images side by side
+    # plt.figure(figsize=(8, 4))
+
+    # plt.subplot(1, 2, 1)
+    # plt.imshow(gray, cmap='gray')
+    # plt.title('Original Image')
+    # plt.axis('off')
+
+    # plt.subplot(1, 2, 2)
+    # plt.imshow(normalized_image, cmap='gray')
+    # plt.title('Normalized Image')
+    # plt.axis('off')
+
+    # plt.tight_layout()
+    # plt.show()
+
+    return normalized_image
+
+def adaptive_histogram_equalization(image, clip_limit=2.0, grid_size=(8, 8)):
+    # Convert the image to grayscale if it's a color image
+    if len(image.shape) == 3:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = image
+
+    # Apply Adaptive Histogram Equalization (AHE)
+    clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=grid_size)
+    ahe_image = clahe.apply(gray)
+
+    # # Display original and AHE-enhanced images side by side
+    # plt.figure(figsize=(8, 4))
+
+    # plt.subplot(1, 2, 1)
+    # plt.imshow(gray, cmap='gray')
+    # plt.title('Original Image')
+    # plt.axis('off')
+
+    # plt.subplot(1, 2, 2)
+    # plt.imshow(ahe_image, cmap='gray')
+    # plt.title('Adaptive HE Image')
+    # plt.axis('off')
+
+    # plt.tight_layout()
+    # plt.show()
+
+    return ahe_image
+
+def apply_clahe(image, clip_limit=2.0, grid_size=(8, 8)):
+    # Convert the image to grayscale if it's a color image
+    if len(image.shape) == 3:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = image
+
+    # Check if the image is already in the expected format (8-bit unsigned)
+    if gray.dtype != np.uint8:
+        gray = gray.astype(np.uint8)
+
+    # Apply CLAHE
+    clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=grid_size)
+    clahe_image = clahe.apply(gray)
+
+    # Display original and CLAHE-enhanced images side by side
+    plt.figure(figsize=(8, 4))
+
+    plt.subplot(1, 2, 1)
+    plt.imshow(gray, cmap='gray')
+    plt.title('Original Image')
+    plt.axis('off')
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(clahe_image, cmap='gray')
+    plt.title('CLAHE Image')
+    plt.axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+    return clahe_image
+
 # go up from bottom of contamination and when you find big jump in pixel value, that is the end of contamination and do this in each direction for 30 pixels and then find the mode of these 3 values
-
-
 def Get_Contamination_Height(image, middleOfContamination, bottomOfContamination, maxY):
     top = -1
     arrayWithPotentialTops = []
@@ -520,16 +612,25 @@ def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, si
 def plot_histogram(image_path):
     # Load the image in grayscale
     image = load_image(image_path)
-    image = preprocess_image(image)
+    preprocessed_image = preprocess_image(image)
     # Calculate the histogram
-    hist = cv2.calcHist([image], [0], None, [256], [0, 256])
+    hist = cv2.calcHist([preprocessed_image], [0], None, [256], [0, 256])
+
+    # Create a figure with two subplots: image and histogram
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Plot the image
+    ax1.imshow(preprocessed_image, cmap='gray')
+    ax1.set_title('Image')
+    ax1.axis('off')
 
     # Plot the histogram
-    plt.figure(figsize=(8, 6))
-    plt.hist(image.ravel(), 256, [0, 256])
-    plt.xlabel('Pixel Value')
-    plt.ylabel('Frequency')
-    plt.title('Histogram')
+    ax2.plot(hist, color='black')
+    ax2.set_title('Histogram')
+    ax2.set_xlabel('Pixel Value')
+    ax2.set_ylabel('Frequency')
+
+    plt.tight_layout()
     plt.show()
 
 

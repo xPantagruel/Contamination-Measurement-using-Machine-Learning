@@ -6,13 +6,13 @@ from DataClass import ProcessedData
 from tests import test_csv_data
 
 use_multiprocessing = True
-do_Tests = True
+do_Tests = False
 
 def process_image(image_path):
     print("Processing image: " + image_path)
     contamination_measurement = ContaminationMeasurementClass()
-    BottomHeight,TopHeight = contamination_measurement.measure_contamination4(image_path)
-
+    BottomHeight,TopHeight = contamination_measurement.showHistogram(image_path)
+    
     Height = BottomHeight - TopHeight
     image_name = os.path.basename(image_path)
 

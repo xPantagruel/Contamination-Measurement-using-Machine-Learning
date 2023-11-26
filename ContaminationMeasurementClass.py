@@ -77,19 +77,24 @@ class ContaminationMeasurementClass:
     def measure_contamination4(self, image_path):
         image = load_image(image_path)
         preprocessed_image = self.cutt_off_edges(image)
-        canny_image = canny_edge_detection(
-            preprocessed_image.copy(), 45, 50, 7, 2)
+    
+        adaptive_histogram_equalization_image = adaptive_histogram_equalization(preprocessed_image)
+        clahe_image = apply_clahe(adaptive_histogram_equalization_image)
+
+        scharr_image = self.scharr(clahe_image.copy())
+        # canny_image = canny_edge_detection(
+        #     clahe_image.copy(), 45, 50, 7, 2)
         # contours = find_and_draw_contours(canny_image, preprocessed_image)
         # Get minimum of tin ball in image height
-        TinBallEdgeLeft = get_mode_height_of_tin_ball_left_side(canny_image)
-        TinBallEdgeRight = get_mode_height_of_tin_ball_right_side(canny_image)
+        TinBallEdgeLeft = get_mode_height_of_tin_ball_left_side(scharr_image)
+        TinBallEdgeRight = get_mode_height_of_tin_ball_right_side(scharr_image)
 
         print("TinBallEdgeLeft: ", TinBallEdgeLeft)
         print("TinBallEdgeRight: ", TinBallEdgeRight)
 
         kernel_size = 11
         blurred_image = cv2.GaussianBlur(
-            preprocessed_image, (kernel_size, kernel_size), 0)
+            clahe_image, (kernel_size, kernel_size), 0)
         thresholded_image1 = thresholding(
             blurred_image, 96, 255, cv2.THRESH_TOZERO)
         thresholded_image = thresholding(
@@ -116,13 +121,13 @@ class ContaminationMeasurementClass:
         
         ContaminationHeight = BottomOfContamination - TopContamination
 
-        # # Visualization
-        # images_to_visualize = [image,
-        #                        blurred_image, thresholded_image, scharr_image2, canny_image2]
-        # titles = ["Original Image",
-        #           "blurred_image", "Thresholded Image", "Scharr Edge Detection", "canny_image"]
+        # Visualization
+        images_to_visualize = [image,
+                               clahe_image, thresholded_image, scharr_image2, canny_image2]
+        titles = ["Original Image",
+                  "clahe_image", "Thresholded Image", "Scharr Edge Detection", "canny_image"]
 
-        # self.visualize(images_to_visualize, titles)
+        self.visualize(images_to_visualize, titles)
 
         # # Visualization of image with detected lines
         # VisualizeBottomAndTopOfContamination = image.copy()
@@ -135,6 +140,10 @@ class ContaminationMeasurementClass:
 
 
         return BottomOfContamination, TopContamination
+
+    def showHistogram(self, image_path):
+        plot_histogram(image_path)
+        
 
     def cutt_off_edges(self, image):
         return preprocess_image(image)
