@@ -20,6 +20,11 @@ Electron-Beam-Induced Carbon Contamination in STEM-in-SEM: Quantification and Mi
 contamination:https://academic.oup.com/mam/article/29/1/219/6927139
 U-net cutting edge " https://www.sciencedirect.com/science/article/pii/S2351978920315869
 segmentation :https://www.sciencedirect.com/science/article/pii/S0263224122001038
+object density segmentation : https://www.sciencedirect.com/science/article/pii/S016926070900159X
+
+State of the art:
+coating layer https://www.sciencedirect.com/science/article/pii/S0263224122001038
+Film thickness https://www.sciencedirect.com/science/article/pii/S0894177715001405
 
 ## TODO:
 
@@ -34,8 +39,13 @@ segmentation :https://www.sciencedirect.com/science/article/pii/S026322412200103
             results: block size 31 and c = -10 shows best thresholding from image when after is used normal thresholding
         - find out use thresholding then adaptive and after again thresholding gets from image the area with contamination pretty well on most of the images
 
-# IDEAS 
+# IDEAS
+
     I should Create algorithm that will get from image the height using :
         Normal Old school Aproach
         Segmentational Aproach
     I can as a experiment for threshold create app that will let me set the best threshold for each image and than it will save it to file and I will make some statistics from it
+
+# State of art 
+https://www.sciencedirect.com/science/article/pii/S0894177715001405?casa_token=MJF4LeBNVI4AAAAA:lEQjyi2veWInS2Bw-B1g4ltQtrAiJ3Hp2u4SrP4RPAlvMbk2poskBcu3tQM6qY-i7ZbOg4nOCg
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8300062/
