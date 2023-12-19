@@ -8,6 +8,59 @@ from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
 
+def apply_closing(img, kernel_size=(5, 5)):
+    # Convert the image to grayscale if it's not already in grayscale
+    if len(img.shape) > 2:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Define the kernel for morphological operations (structuring element)
+    kernel = np.ones(kernel_size, np.uint8)
+
+    # Perform the closing operation
+    closed_img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+
+    return closed_img
+
+def apply_opening(img, kernel_size=(5, 5)):
+    # Convert the image to grayscale if it's not already in grayscale
+    if len(img.shape) > 2:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Define the kernel for morphological operations (structuring element)
+    kernel = np.ones(kernel_size, np.uint8)
+
+    # Perform the opening operation
+    opened_img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+
+    return opened_img
+
+def niblack_threshold(img, window_size=15, k=-0.2):
+    # Convert image to grayscale if it's not already in grayscale
+    if len(img.shape) > 2:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Pad the image to handle borders when calculating local statistics
+    padded_img = cv2.copyMakeBorder(img, window_size // 2, window_size // 2, window_size // 2, window_size // 2, cv2.BORDER_CONSTANT)
+
+    thresholded_img = np.zeros_like(img)
+
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            # Calculate local mean and standard deviation
+            window = padded_img[i:i+window_size, j:j+window_size]
+            mean, std_dev = np.mean(window), np.std(window)
+
+            # Calculate threshold using Niblack's method
+            threshold = mean + k * std_dev
+
+            # Apply thresholding
+            if img[i, j] > threshold:
+                thresholded_img[i, j] = 255  # White (foreground)
+            else:
+                thresholded_img[i, j] = 0    # Black (background)
+
+    return thresholded_img
+
 def histogram_normalization(image):
     # Convert the image to grayscale if it's a color image
     gray = image

@@ -141,6 +141,64 @@ class ContaminationMeasurementClass:
 
         return BottomOfContamination, TopContamination
 
+    def measure_contamination5(self, image_path):
+        image = load_image(image_path)
+        preprocessed_image = self.cutt_off_edges(image)
+        OpenImage = apply_opening(preprocessed_image)
+        CloseImage = apply_closing(OpenImage)
+    
+        # adaptive_histogram_equalization_image = adaptive_histogram_equalization(CloseImage)
+        # clahe_image = apply_clahe(adaptive_histogram_equalization_image)
+
+        # scharr_image = self.scharr(clahe_image.copy())
+        # canny_image = canny_edge_detection(
+        #     clahe_image.copy(), 45, 50, 7, 2)
+        # contours = find_and_draw_contours(canny_image, preprocessed_image)
+        # Get minimum of tin ball in image height
+        TinBallEdgeLeft = get_mode_height_of_tin_ball_left_side(CloseImage)
+        TinBallEdgeRight = get_mode_height_of_tin_ball_right_side(CloseImage)
+
+        print("TinBallEdgeLeft: ", TinBallEdgeLeft)
+        print("TinBallEdgeRight: ", TinBallEdgeRight)
+
+        kernel_size = 11
+        blurred_image = cv2.GaussianBlur(
+            CloseImage, (kernel_size, kernel_size), 0)
+        thresholded_image1 = thresholding(
+            blurred_image, 96, 255, cv2.THRESH_TOZERO)
+        thresholded_image = thresholding(
+            thresholded_image1, 100, 255, cv2.THRESH_TRUNC)
+
+        canny_image2 = self.detect_edges(thresholded_image)
+        scharr_image2 = self.scharr(thresholded_image)
+
+        # Get high of tin ball
+        if (TinBallEdgeLeft > TinBallEdgeRight):
+            MaxY = TinBallEdgeLeft
+        else:
+            MaxY = TinBallEdgeRight
+
+        print("MaxY: ", MaxY)
+        BottomOfContamination = get_contamination_bottom_height(
+            scharr_image2, MaxY)
+        print("contamination_bottom: ", BottomOfContamination)
+
+        LeftSideContamination, RightSideContamination, middleOfContamination = get_contamination_range(
+            scharr_image2, MaxY)
+        
+        TopContamination = Get_Contamination_Height(scharr_image2, middleOfContamination, BottomOfContamination, MaxY)
+        
+        ContaminationHeight = BottomOfContamination - TopContamination
+
+        # # Visualization
+        # images_to_visualize = [image,
+        #                        CloseImage, thresholded_image, scharr_image2, canny_image2]
+        # titles = ["Original Image",
+        #           "CloseImage", "Thresholded Image", "Scharr Edge Detection", "canny_image"]
+
+        # self.visualize(images_to_visualize, titles)
+        return BottomOfContamination, TopContamination
+
     def showHistogram(self, image_path):
         plot_histogram(image_path)
         
