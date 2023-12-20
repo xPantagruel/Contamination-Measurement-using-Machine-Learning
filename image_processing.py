@@ -8,6 +8,15 @@ from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
 
+def adaptive_threshold(image, block_size, constant):
+    # Convert image to grayscale if it's not already in grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Apply adaptive thresholding
+    thresholded = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, block_size, constant)
+    
+    return thresholded
+
 def apply_closing(img, kernel_size=(5, 5)):
     # Convert the image to grayscale if it's not already in grayscale
     if len(img.shape) > 2:
@@ -322,6 +331,22 @@ def get_mode_height_of_tin_ball_left_side(image):
         pixel_height = mode(min_pixel_values)
     return pixel_height
 
+def median_blur(image, kernel_size):
+    """
+    Applies median blur filter to the given image using the specified kernel size.
+
+    Args:
+    - image: Input image (numpy array).
+    - kernel_size: Size of the kernel for the median blur filter.
+
+    Returns:
+    - Blurred image (numpy array).
+    """
+
+    # Apply median blur filter
+    blurred_image = cv2.medianBlur(image, kernel_size)
+
+    return blurred_image
 
 def get_mode_height_of_tin_ball_right_side(image):
     img = image.copy()
@@ -558,24 +583,10 @@ def laplacian_of_gaussian(gray_image, sigma=1):
 
 
 def otsu_thresholding(image):
-    # Convert the input image to grayscale if it's not already.
-    if len(image.shape) == 3:
-        image = color.rgb2gray(image)
-
-    # Calculate the gradient magnitude using Sobel filters.
-    gradient_x = np.abs(cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3))
-    gradient_y = np.abs(cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3))
-    gradient_magnitude = np.sqrt(gradient_x ** 2 + gradient_y ** 2)
-
-    # Normalize gradient magnitude to [0, 255]
-    gradient_magnitude = ((gradient_magnitude - np.min(gradient_magnitude)) /
-                          (np.max(gradient_magnitude) - np.min(gradient_magnitude)) * 255).astype(np.uint8)
-
-    # Calculate Otsu's threshold
-    _, thresholded_image = cv2.threshold(
-        gradient_magnitude, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-    return thresholded_image
+    # Apply Otsu's thresholding
+    _, thresholded = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    
+    return thresholded
 
 
 def hough_transform_line_detection(image):
@@ -666,6 +677,7 @@ def plot_histogram(image_path):
     # Load the image in grayscale
     image = load_image(image_path)
     preprocessed_image = preprocess_image(image)
+    preprocessed_image = median_blur(preprocessed_image, 5)
     # Calculate the histogram
     hist = cv2.calcHist([preprocessed_image], [0], None, [256], [0, 256])
 
