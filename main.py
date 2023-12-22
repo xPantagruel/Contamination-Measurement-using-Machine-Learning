@@ -5,13 +5,13 @@ import multiprocessing
 from DataClass import ProcessedData 
 from tests import test_csv_data
 
-use_multiprocessing = True
+use_multiprocessing = False
 do_Tests = False
 
 def process_image(image_path):
     print("Processing image: " + image_path)
     contamination_measurement = ContaminationMeasurementClass()
-    BottomHeight,TopHeight = contamination_measurement.measure_contamination6(image_path)
+    BottomHeight,TopHeight = contamination_measurement.measure_contamination7(image_path)
     
     Height = BottomHeight - TopHeight
     image_name = os.path.basename(image_path)
@@ -23,7 +23,7 @@ def process_image(image_path):
 
 if __name__ == "__main__":
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "images")
+    folder_path = os.path.join(current_directory, "images/Default")
 
     image_paths = load_images_from_folder(folder_path)
 

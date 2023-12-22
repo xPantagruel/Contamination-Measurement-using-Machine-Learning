@@ -25,7 +25,7 @@ object density segmentation : https://www.sciencedirect.com/science/article/pii/
 State of the art:
 coating layer https://www.sciencedirect.com/science/article/pii/S0263224122001038
 Film thickness https://www.sciencedirect.com/science/article/pii/S0894177715001405
-
+for edge detection otsu and canny https://link.springer.com/article/10.1007/s40815-020-01030-5
 ## TODO:
 
     create unit tests

@@ -236,6 +236,9 @@ class ContaminationMeasurementClass:
         LeftSideContamination, RightSideContamination, middleOfContamination = get_contamination_range(
             scharr_image2, MaxY)
         
+        print("LeftSideContamination: ", LeftSideContamination)
+        print("RightSideContamination: ", RightSideContamination)
+        
         TopContamination = Get_Contamination_Height(scharr_image2, middleOfContamination, BottomOfContamination, MaxY)
         
         ContaminationHeight = BottomOfContamination - TopContamination
@@ -248,6 +251,54 @@ class ContaminationMeasurementClass:
 
         self.visualize(images_to_visualize, titles)
         return BottomOfContamination, TopContamination
+    
+    def measure_contamination7(self, image_path):
+        image = load_image(image_path)
+        preprocessed_image = self.cutt_off_edges(image)
+        OpenImage = apply_opening(preprocessed_image)
+        CloseImage = apply_closing(OpenImage)
+
+        kernel_size = 11
+        blurred_image = cv2.GaussianBlur(
+            CloseImage, (kernel_size, kernel_size), 0)
+
+        thresholded_image = otsu_thresholding(blurred_image)
+        scharr_image = self.scharr(thresholded_image)
+    
+        TinBallEdgeLeft = get_mode_height_of_tin_ball_left_side(scharr_image)
+        TinBallEdgeRight = get_mode_height_of_tin_ball_right_side(scharr_image)
+        
+        # Get high of tin ball
+        if (TinBallEdgeLeft > TinBallEdgeRight):
+            MaxY = TinBallEdgeLeft
+        else:
+            MaxY = TinBallEdgeRight
+        print("MaxY: ", MaxY)
+        
+        LeftYContamination, RightYContamination, middleOfContamination = get_contamination_range(
+            scharr_image, MaxY)
+        
+        print("LeftYContamination: ", LeftYContamination)
+        print("RightYContamination: ", RightYContamination)
+        
+        roi = get_Roi(blurred_image, LeftYContamination, RightYContamination)
+        
+        # thresholded_roi1 = thresholding(
+        #     roi, 96, 255, cv2.THRESH_TOZERO)
+        # thresholded_roi = thresholding(
+        #     thresholded_roi1, 100, 255, cv2.THRESH_TRUNC)
+        scharr_roi = self.scharr(roi)
+        
+        # plot_vertical_line_cv2(roi, 100)
+        plot_different_x_positions_with_graph(scharr_roi)   
+        # Visualization
+        images_to_visualize = [image,
+                               CloseImage, thresholded_image, scharr_image,roi,scharr_roi]
+        titles = ["Original Image",
+                  "CloseImage", "Thresholded Image", "Scharr Edge Detection","ROI","Scharr ROI"]
+
+        self.visualize(images_to_visualize, titles)
+        return 0,0
     
     def showHistogram(self, image_path):
         plot_histogram(image_path)

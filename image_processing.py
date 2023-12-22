@@ -7,6 +7,122 @@ import numpy as np
 from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
+def get_Roi(image, left_boundary, right_boundary):
+    # Get image dimensions
+    height, width= image.shape
+
+    # Crop the image based on the provided boundaries
+    cropped_img = image[0:height, left_boundary:right_boundary]
+
+    return cropped_img
+
+def plot_different_x_positions_with_graph(gray_img):
+    # Get the dimensions of the image
+    height, width = gray_img.shape
+
+    # Define x positions for the lines (10 different x positions around the middle)
+    x_positions = [width // 2 - 50, width // 2 - 40, width // 2 - 30, width // 2 - 20,
+                   width // 2 - 10, width // 2, width // 2 + 10, width // 2 + 20,
+                   width // 2 + 30, width // 2 + 40]
+
+    # Extract the pixel values along different x positions
+    line_values = {}
+    for x in x_positions:
+        line_values[x] = [gray_img[y, x] for y in range(height)]
+
+    # Plotting the graph with vertical lines and the combined graph
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Plot the grayscale image with vertical lines
+    ax1.imshow(gray_img, cmap='gray')
+    for x in x_positions:
+        ax1.axvline(x=x, color='red', linestyle='--', linewidth=1.5)
+    ax1.axis('off')
+    ax1.set_title('Grayscale Image with Vertical Lines')
+
+    # Plot the combined graph for all vertical lines
+    for x in x_positions:
+        ax2.plot(line_values[x], label=f'x={x}')
+    ax2.set_xlabel('Y Axis (Height of Image)')
+    ax2.set_ylabel('Pixel Value')
+    ax2.set_title('Combined Vertical Line Profiles')
+    ax2.legend()
+
+    plt.tight_layout()
+    plt.show()
+    
+def plot_vertical_line_cv2(gray_img,position = 0):
+    # Get the dimensions of the image
+    height, width = gray_img.shape
+
+    # Extract the vertical line in the middle from left to right
+    if position == 0:
+        line_x_position = width // 2
+    else :
+        line_x_position = position
+        
+    line_values = [gray_img[y, line_x_position] for y in range(height)]
+
+    # Plotting the graph and image with the line
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Plot the grayscale image
+    ax1.imshow(gray_img, cmap='gray')
+    ax1.plot([line_x_position, line_x_position], [0, height - 1], color='red', linestyle='--', linewidth=1.5)
+    ax1.axis('off')
+    ax1.set_title('Grayscale Image with Vertical Line')
+
+    # Plot the graph
+    ax2.plot(range(height), line_values)
+    ax2.set_xlabel('Y Axis (Height of Image)')
+    ax2.set_ylabel('Pixel Value')
+    ax2.set_title('Vertical Line Profile')
+
+    plt.tight_layout()
+    plt.show()
+
+def laplacian_edge_detection(image):
+    # Read the image
+    if image is None:
+        print("Error loading image")
+        return
+    gray = image.copy()
+    # Apply Laplacian edge detection
+    laplacian = cv2.Laplacian(gray, cv2.CV_64F)
+
+    # Normalize the output to display as an image
+    laplacian = np.uint8(np.absolute(laplacian))
+
+    # Display original and Laplacian edge-detected images
+    cv2.imshow('Original Image', image)
+    cv2.imshow('Laplacian Edge Detection', laplacian)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def get_contours(image):
+    try:
+        if image is None:
+            print("Could not read the image. Please provide a valid image path.")
+            return None
+
+        # Check the number of image channels and convert to grayscale if necessary
+        if len(image.shape) > 2 and image.shape[2] > 1:
+            gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            gray_image = image
+
+        # Find contours
+        contours, _ = cv2.findContours(gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Draw contours on the original image
+        contour_image = np.copy(image)
+        cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 3)  # Change the color and thickness as needed
+
+        return contour_image
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 def adaptive_threshold(image, block_size, constant):
     # Convert image to grayscale if it's not already in grayscale
@@ -676,8 +792,8 @@ def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, si
 def plot_histogram(image_path):
     # Load the image in grayscale
     image = load_image(image_path)
-    preprocessed_image = preprocess_image(image)
-    preprocessed_image = median_blur(preprocessed_image, 5)
+    # preprocessed_image = preprocess_image(image)
+    preprocessed_image = median_blur(image, 5)
     # Calculate the histogram
     hist = cv2.calcHist([preprocessed_image], [0], None, [256], [0, 256])
 
@@ -697,6 +813,7 @@ def plot_histogram(image_path):
 
     plt.tight_layout()
     plt.show()
+    return 0,0
 
 
 def Get_Image_With_Most_frequent_Pixel_Red(image_path):
