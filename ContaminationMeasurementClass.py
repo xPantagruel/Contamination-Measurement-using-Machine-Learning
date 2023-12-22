@@ -202,18 +202,18 @@ class ContaminationMeasurementClass:
     def measure_contamination6(self, image_path):
         image = load_image(image_path)
         preprocessed_image = self.cutt_off_edges(image)
-        OpenImage = apply_opening(preprocessed_image)
-        CloseImage = apply_closing(OpenImage)
+        # OpenImage = apply_opening(preprocessed_image)
+        # CloseImage = apply_closing(OpenImage)
     
-        TinBallEdgeLeft = get_mode_height_of_tin_ball_left_side(CloseImage)
-        TinBallEdgeRight = get_mode_height_of_tin_ball_right_side(CloseImage)
+        TinBallEdgeLeft = get_mode_height_of_tin_ball_left_side(preprocessed_image)
+        TinBallEdgeRight = get_mode_height_of_tin_ball_right_side(preprocessed_image)
 
         print("TinBallEdgeLeft: ", TinBallEdgeLeft)
         print("TinBallEdgeRight: ", TinBallEdgeRight)
 
         kernel_size = 11
         blurred_image = cv2.GaussianBlur(
-            CloseImage, (kernel_size, kernel_size), 0)
+            preprocessed_image, (kernel_size, kernel_size), 0)
         # thresholded_image1 = thresholding(
         #     blurred_image, 96, 255, cv2.THRESH_TOZERO)
         # thresholded_image = thresholding(
@@ -245,11 +245,11 @@ class ContaminationMeasurementClass:
 
         # Visualization
         images_to_visualize = [image,
-                               CloseImage, thresholded_image, scharr_image2, canny_image2]
+                               blurred_image, thresholded_image, scharr_image2, canny_image2]
         titles = ["Original Image",
-                  "CloseImage", "Thresholded Image", "Scharr Edge Detection", "canny_image"]
+                  "blurred_image", "Thresholded Image", "Scharr Edge Detection", "canny_image"]
 
-        self.visualize(images_to_visualize, titles)
+        # self.visualize(images_to_visualize, titles)
         return BottomOfContamination, TopContamination
     
     def measure_contamination7(self, image_path):
