@@ -26,6 +26,7 @@ State of the art:
 coating layer https://www.sciencedirect.com/science/article/pii/S0263224122001038
 Film thickness https://www.sciencedirect.com/science/article/pii/S0894177715001405
 for edge detection otsu and canny https://link.springer.com/article/10.1007/s40815-020-01030-5
+for deep learning CNN https://iopscience.iop.org/article/10.35848/1347-4065/ac923d/meta?casa_token=lH_9A5N1rW0AAAAA:52E5x1lxtaVnnG8NRQJr9oCs-P1o60xIRWLOSZ2zQVWuBl_ZZktkEqzkbWaRnkif0PxACTuH5hdESf4Xvz4KG4q9iGg#jjapac923dt4
 ## TODO:
 
     create unit tests
