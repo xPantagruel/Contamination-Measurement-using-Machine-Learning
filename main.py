@@ -5,7 +5,7 @@ import multiprocessing
 from DataClass import ProcessedData 
 from tests import test_csv_data
 
-use_multiprocessing = False
+use_multiprocessing = True
 do_Tests = False
 
 def process_image(image_path):
@@ -23,7 +23,7 @@ def process_image(image_path):
 
 if __name__ == "__main__":
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "images/Default")
+    folder_path = os.path.join(current_directory, "images1")
 
     image_paths = load_images_from_folder(folder_path)
 

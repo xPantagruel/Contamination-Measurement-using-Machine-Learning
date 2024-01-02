@@ -287,10 +287,13 @@ class ContaminationMeasurementClass:
         #     roi, 96, 255, cv2.THRESH_TOZERO)
         # thresholded_roi = thresholding(
         #     thresholded_roi1, 100, 255, cv2.THRESH_TRUNC)
-        scharr_roi = self.scharr(roi)
         
+        scharr_roi = self.scharr(roi)
+        close = apply_closing(scharr_roi)
+        open = apply_opening(close)
+
         # plot_vertical_line_cv2(roi, 100)
-        plot_different_x_positions_with_graph(scharr_roi)   
+        # plot_different_x_positions_with_graph(open)   
         # Visualization
         images_to_visualize = [image,
                                CloseImage, thresholded_image, scharr_image,roi,scharr_roi]
