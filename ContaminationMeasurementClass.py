@@ -319,7 +319,7 @@ class ContaminationMeasurementClass:
         # Define Hough parameters
         rho = 1  # Pixel resolution of the accumulator
         theta = np.pi / 180  # Angle resolution of the accumulator (1 degree)
-        threshold = 50  # Accumulator threshold (adjust as needed)
+        threshold = 50  
         min_line_length = 100  # Minimum line length to be considered
         max_line_gap = 10  # Maximum gap between line segments to be considered as a single line
 

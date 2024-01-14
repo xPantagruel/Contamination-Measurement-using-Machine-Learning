@@ -44,8 +44,3 @@ class ImageThresholdingApp:
         self.threshold_type = threshold_types[value]
         # Update the thresholded image when the type changes
         self.update_threshold(0)
-
-
-if __name__ == "__main__":
-    image_path = "your_image.jpg"  # Replace with your image path
-    app = ImageThresholdingApp(image_path)

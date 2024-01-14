@@ -23,7 +23,7 @@ def process_image(image_path):
 
 if __name__ == "__main__":
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "images1")
+    folder_path = os.path.join(current_directory, "Images/Default")
 
     image_paths = load_images_from_folder(folder_path)
 

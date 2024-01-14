@@ -1,4 +1,24 @@
-# ContaminationMeasurement
+# How to run the program
+
+- run the 'main.py' file using ' Python3 main.py '
+
+## Requirements
+
+- Python 3.8
+- libraries from each file
+
+## How to run
+
+- run the 'main.py' file, it will start the program and you will be able to see the figures
+- important files:
+  - main.py = loading images and iterate through them calling on each image the functions from the ContaminationMeasurementClass.py you can change variable use_multiprocessing = True/False to use multiprocessing or not
+  - ContaminationMeasurementClass.py = contains the whole proccess of the workflow for calling image processing functions from image_processing.py
+  - image_processing.py = contains all the functions for image processing and measuring functions, also contains the functions for saving the images. In the file are also not needed functions that are not used in the workflow, but were used for testing different approaches.
+  - tests.py = contains the file for testing results of the functions from contamination_measurement.py
+  - DataClass.py = contains the dataclass ProcessedData
+  - AcquireDataset.py = contains the functions for acquiring the dataset from the images, filtering the dataset and saving the dataset, for use it is needed to change the path to the images in the bottom of the file
+
+---
 
 ## Research sources:
 
@@ -27,26 +47,20 @@ coating layer https://www.sciencedirect.com/science/article/pii/S026322412200103
 Film thickness https://www.sciencedirect.com/science/article/pii/S0894177715001405
 for edge detection otsu and canny https://link.springer.com/article/10.1007/s40815-020-01030-5
 for deep learning CNN https://iopscience.iop.org/article/10.35848/1347-4065/ac923d/meta?casa_token=lH_9A5N1rW0AAAAA:52E5x1lxtaVnnG8NRQJr9oCs-P1o60xIRWLOSZ2zQVWuBl_ZZktkEqzkbWaRnkif0PxACTuH5hdESf4Xvz4KG4q9iGg#jjapac923dt4
-## TODO:
 
-    create unit tests
-    get the start and end of the bottom of the contamination
-    check if bottom is higher than top of tin ball sides (if not then it is not contamination)
+# TODO
 
-## What I do durring week:
-
-    29/09/2023
-        - working with adaptive thresholding
-            results: block size 31 and c = -10 shows best thresholding from image when after is used normal thresholding
-        - find out use thresholding then adaptive and after again thresholding gets from image the area with contamination pretty well on most of the images
+    Add the measuring of the height of the image from the thesis of Kutalik
 
 # IDEAS
 
     I should Create algorithm that will get from image the height using :
         Normal Old school Aproach
         Segmentational Aproach
-    I can as a experiment for threshold create app that will let me set the best threshold for each image and than it will save it to file and I will make some statistics from it
 
-# State of art 
+# State of art
+
 https://www.sciencedirect.com/science/article/pii/S0894177715001405?casa_token=MJF4LeBNVI4AAAAA:lEQjyi2veWInS2Bw-B1g4ltQtrAiJ3Hp2u4SrP4RPAlvMbk2poskBcu3tQM6qY-i7ZbOg4nOCg
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8300062/
+
+# FIX :

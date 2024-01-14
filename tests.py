@@ -41,8 +41,3 @@ def test_csv_data(processed_data):
             print(f"No data found in CSV for {image_name}")
 
     print(f"Test results: {succesed} succesed, {failed} failed")
-
-
-if __name__ == "__main__":
-    # Assuming 'Results' is populated with ProcessedData instances
-    test_csv_data(Results)

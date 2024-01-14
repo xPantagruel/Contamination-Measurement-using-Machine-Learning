@@ -163,9 +163,10 @@ class AcquireDataset:
             cv2.imwrite(os.path.join(new_path, image_file), result_image)
 
 
-# image_path = r'C:\Users\matej.macek\OneDrive - Thermo Fisher Scientific\Desktop\BC Contamination Measurement\BC- FORK\ContaminationMeasurement\with quotation\H6EX10_S_PLC_SPC_Upload_01.tif'
+# Adjust path to the images
 image_path = r'C:\Users\matej.macek\OneDrive - Thermo Fisher Scientific\Desktop\BC Contamination Measurement\BC- FORK\ContaminationMeasurement\ImagesWithDimensions\H6EX10_S_PLC_SPC_Upload_01.tif'
 
+# Adjust path to the images
 AcquireDataset = AcquireDataset(r'C:\Users\matej.macek\OneDrive - Thermo Fisher Scientific\Desktop\BC Contamination Measurement\BC- FORK\ContaminationMeasurement\ImagesWithDimensions')
 
 AcquireDataset.Get_Image_Without_Dimensions(image_path)

@@ -116,7 +116,7 @@ def get_contours(image):
 
         # Draw contours on the original image
         contour_image = np.copy(image)
-        cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 3)  # Change the color and thickness as needed
+        cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 3)  
 
         return contour_image
 
@@ -384,7 +384,7 @@ def get_contamination_bottom_height(image, maxY):
             y = height - 1  # Start from the bottom row
             while y >= 0:
                 pixel_value = img[y, x]
-                if pixel_value > 150:  # Adjust the threshold value as needed
+                if pixel_value > 150: 
                     y_values.append(y)
                     break
                 y -= 1
@@ -393,7 +393,7 @@ def get_contamination_bottom_height(image, maxY):
             # Calculate the mode (the value that appears most frequently) of the y values
             mode_y = max(set(y_values), key=y_values.count)
         else:
-            mode_y = -1  # You can choose an appropriate default value
+            mode_y = -1  
 
         return mode_y
 
@@ -477,7 +477,7 @@ def get_mode_height_of_tin_ball_right_side(image):
     for x in range(width - 10, width):  # Last 10 columns
         for y in range(height - 1, -1, -1):  # Iterate from the bottom to the top
             pixel_value = img[y, x]
-            if pixel_value > 150:  # Adjust the threshold value as needed
+            if pixel_value > 150: 
                 white_pixel_heights.append(y)
                 break
 
@@ -486,8 +486,7 @@ def get_mode_height_of_tin_ball_right_side(image):
         mode_height = max(set(white_pixel_heights),
                           key=white_pixel_heights.count)
     else:
-        # If no white pixels are found, return a default value (you can change this as needed)
-        mode_height = -1  # You can choose an appropriate default value
+        mode_height = -1  
 
     return mode_height
 
@@ -589,7 +588,7 @@ def find_start_end_indices(data, window_size=10, threshold=200):
 def Take_10_pixels_In_Each_Row_And_Put_Them_In_Csv(image):
     height, width = image.shape[:2]
 
-    window_size = 10  # You want to sum 10 consecutive pixels
+    window_size = 10  
     mat = np.zeros((height, width - window_size + 1), dtype=np.uint16)
 
     for row in range(height):
@@ -634,12 +633,9 @@ def find_points(image, threshold=80):
 
 
 def load_images_from_folder(folder_path):
-    # Define a list to store image file paths
     image_paths = []
-    # Use the 'glob' function to search for image files in the directory and its subdirectories
-    # You can specify different image file extensions like '*.jpg', '*.png', '*.jpeg', etc.
     image_extensions = ['*.jpg', '*.jpeg', '*.png', '*.gif',
-                        '*.bmp', "*.tif"]  # Add more extensions as needed
+                        '*.bmp', "*.tif"] # Supported image extensions
 
     for extension in image_extensions:
         image_paths.extend(glob.glob(os.path.join(
@@ -688,7 +684,6 @@ def laplacian_of_gaussian(gray_image, sigma=1):
     # Apply the Laplacian of Gaussian (LoG) filter
     log_edges = gaussian_laplace(gray_image, sigma=sigma)
 
-    # Adjust the range of values for visualization
     log_edges = (log_edges - np.min(log_edges)) / \
         (np.max(log_edges) - np.min(log_edges)) * 255
 
