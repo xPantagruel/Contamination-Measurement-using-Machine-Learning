@@ -7,6 +7,85 @@ import numpy as np
 from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
+
+def get_starting_point(image, column_start=200):
+    # Compute the vertical profile by averaging pixel values along the horizontal axis
+    vertical_profile = np.mean(image, axis=1)
+
+    # Find all minima in the second half of the vertical profile
+    max_height = len(vertical_profile)
+    minima_indices = []
+    for i in range(max_height // 2, max_height):
+        if i > max_height // 2 and i < max_height - 1:
+            if vertical_profile[i] < vertical_profile[i - 1] and vertical_profile[i] < vertical_profile[i + 1]:
+                minima_indices.append(i)
+
+    # Initialize variables for tracking the best pair of minima
+    max_difference = 0
+    best_pair = None
+
+    # Iterate through the minima to find the pair with the biggest difference within 250 pixels
+    for i in range(len(minima_indices)):
+        for j in range(i+1, len(minima_indices)):
+            if abs(minima_indices[i] - minima_indices[j]) <= 250:
+                difference = vertical_profile[minima_indices[i]] - vertical_profile[minima_indices[j]]
+                if difference < max_difference:
+                    max_difference = difference
+                    best_pair = (minima_indices[i], minima_indices[j])
+
+    # Choose the starting point as the minimum of the pair with the biggest difference
+    if best_pair is not None:
+        starting_point = min(best_pair)
+    else:
+        starting_point = -1
+
+    # Plot the vertical profile with the starting point
+    plt.plot(vertical_profile, color='b')
+    plt.scatter(starting_point, vertical_profile[starting_point], color='r', label='Starting Point')
+    plt.xlabel('Vertical Position')
+    plt.ylabel('Pixel Value')
+    plt.title('Vertical Profile with Starting Point')
+    plt.legend()
+    plt.show()
+
+    # # Plot the vertical profile with all minima marked
+    # plt.plot(vertical_profile, color='b')
+    # plt.scatter(minima_indices, [vertical_profile[i] for i in minima_indices], color='r', label='Minima')
+    # plt.xlabel('Vertical Position')
+    # plt.ylabel('Pixel Value')
+    # plt.title('Vertical Profile with Minima in the Second Half')
+    # plt.legend()
+    # plt.show()
+
+    return starting_point
+
+
+def plot_mean_pixel_values(image, num_columns=200):
+    # Get the middle of the image
+    middle_x = image.shape[1] // 2
+
+    # Extract 10 columns starting from the middle
+    start_column = middle_x - (num_columns // 2)
+    end_column = start_column + num_columns
+    extracted_columns = image[:, start_column:end_column]
+
+    # Calculate the mean pixel values across columns
+    mean_pixel_values = np.mean(extracted_columns, axis=1)
+
+    # Plot the image
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 8))
+    ax1.imshow(image, cmap='gray')
+    ax1.set_title('Original Image')
+
+    # Plot the mean pixel values
+    ax2.plot(mean_pixel_values)
+    ax2.set_title('Mean Pixel Values Across Rows')
+    ax2.set_xlabel('Row')
+    ax2.set_ylabel('Mean Pixel Value')
+
+    plt.tight_layout()
+    plt.show()
+
 def get_Roi(image, left_boundary, right_boundary):
     # Get image dimensions
     height, width= image.shape
@@ -51,35 +130,51 @@ def plot_different_x_positions_with_graph(gray_img):
     plt.tight_layout()
     plt.show()
     
-def plot_vertical_line_cv2(gray_img,position = 0):
+def plot_vertical_line_cv2(gray_img, position=0, num_rows=10, shouwDebug=False):
     # Get the dimensions of the image
     height, width = gray_img.shape
 
-    # Extract the vertical line in the middle from left to right
+    # Extract the vertical line at the given position
     if position == 0:
         line_x_position = width // 2
-    else :
+    else:
         line_x_position = position
-        
-    line_values = [gray_img[y, line_x_position] for y in range(height)]
 
-    # Plotting the graph and image with the line
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    # Define the range of rows to consider around the initial position
+    start_row = max(0, line_x_position - num_rows)
+    end_row = min(width - 1, line_x_position + num_rows)
 
-    # Plot the grayscale image
-    ax1.imshow(gray_img, cmap='gray')
-    ax1.plot([line_x_position, line_x_position], [0, height - 1], color='red', linestyle='--', linewidth=1.5)
-    ax1.axis('off')
-    ax1.set_title('Grayscale Image with Vertical Line')
+    # Extract pixel values from the selected rows
+    line_values = np.mean(gray_img[:, start_row:end_row + 1], axis=1)
 
-    # Plot the graph
-    ax2.plot(range(height), line_values)
-    ax2.set_xlabel('Y Axis (Height of Image)')
-    ax2.set_ylabel('Pixel Value')
-    ax2.set_title('Vertical Line Profile')
+    # Calculate the first derivative of the line values
+    line_first_derivative = np.gradient(line_values)
 
-    plt.tight_layout()
-    plt.show()
+    if shouwDebug:
+        # Plotting the graph and image with the line
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
+
+        # Plot the grayscale image
+        ax1.imshow(gray_img, cmap='gray')
+        ax1.plot([line_x_position, line_x_position], [0, height - 1], color='red', linestyle='--', linewidth=1.5)
+        ax1.axis('off')
+        ax1.set_title('Grayscale Image with Vertical Line')
+
+        # Plot the line profile
+        ax2.plot(range(height), line_values)
+        ax2.set_xlabel('Y Axis (Height of Image)')
+        ax2.set_ylabel('Pixel Value')
+        ax2.set_title('Vertical Line Profile')
+
+        # Plot the first derivative of the line profile
+        ax3.plot(range(height), line_first_derivative)
+        ax3.set_xlabel('Y Axis (Height of Image)')
+        ax3.set_ylabel('First Derivative')
+        ax3.set_title('First Derivative of Vertical Line Profile')
+
+        plt.tight_layout()
+        plt.show()
+    return line_values
 
 def laplacian_edge_detection(image):
     # Read the image

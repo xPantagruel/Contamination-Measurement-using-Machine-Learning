@@ -288,19 +288,21 @@ class ContaminationMeasurementClass:
         # thresholded_roi = thresholding(
         #     thresholded_roi1, 100, 255, cv2.THRESH_TRUNC)
         
-        scharr_roi = self.scharr(roi)
-        close = apply_closing(scharr_roi)
-        open = apply_opening(close)
+        # scharr_roi = self.scharr(roi)
+        # close = apply_closing(scharr_roi)
+        # open = apply_opening(close)
 
-        # plot_vertical_line_cv2(roi, 100)
+        # plot_mean_pixel_values(roi)
+        # plot_vertical_line_cv2(roi, 200)
+        get_starting_point(roi) 
         # plot_different_x_positions_with_graph(open)   
-        # Visualization
-        images_to_visualize = [image,
-                               CloseImage, thresholded_image, scharr_image,roi,scharr_roi]
-        titles = ["Original Image",
-                  "CloseImage", "Thresholded Image", "Scharr Edge Detection","ROI","Scharr ROI"]
+        # # Visualization
+        # images_to_visualize = [image,
+        #                        CloseImage, thresholded_image, scharr_image,roi,scharr_roi]
+        # titles = ["Original Image",
+        #           "CloseImage", "Thresholded Image", "Scharr Edge Detection","ROI","Scharr ROI"]
 
-        self.visualize(images_to_visualize, titles)
+        # self.visualize(images_to_visualize, titles)
         return 0,0
     
     def showHistogram(self, image_path):
