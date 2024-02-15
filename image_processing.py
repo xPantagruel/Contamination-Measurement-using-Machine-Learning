@@ -8,7 +8,77 @@ from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
 
-def get_starting_point(image, column_start=200):
+# find maximums and minimums arround starting point in vertical profile first derivation of image in middle of the image
+def find_contamination_height(image, starting_point, position = 200, num_rows=10, shouwDebug=False):
+    # Get the dimensions of the image
+    height, width = image.shape
+
+    # Extract the vertical line at the given position
+    if position == 0:
+        line_x_position = width // 2
+    else:
+        line_x_position = position
+
+    # Define the range of rows to consider around the initial position
+    start_row = max(0, line_x_position - num_rows)
+    end_row = min(width - 1, line_x_position + num_rows)
+
+    # Extract pixel values from the selected rows
+    line_values = np.mean(image[:, start_row:end_row + 1], axis=1)
+
+    # Calculate the first derivative of the line values
+    line_first_derivative = np.gradient(line_values)
+
+    # find maximums and minimums arround starting point in vertical profile first derivation of image about 300 arround starting point
+    maxs = []
+    mins = []
+    for i in range(starting_point - 100, starting_point + 100):
+        if i > 0 and i < height - 1:
+            if line_first_derivative[i] > line_first_derivative[i - 1] and line_first_derivative[i] > line_first_derivative[i + 1]:
+                maxs.append(i)
+            if line_first_derivative[i] < line_first_derivative[i - 1] and line_first_derivative[i] < line_first_derivative[i + 1]:
+                mins.append(i)
+    
+    # show the graph of first derivation of image with maximums and minimums
+        # Plot the first derivative of the line profile
+    plt.plot(range(height), line_first_derivative)
+    plt.scatter(maxs, [line_first_derivative[i] for i in maxs], color='r', label='Max')
+    plt.scatter(mins, [line_first_derivative[i] for i in mins], color='g', label='Min')
+    plt.xlabel('Y Axis (Height of Image)')
+    plt.ylabel('First Derivative')
+    plt.title('First Derivative of Vertical Line Profile')
+    plt.legend()
+    plt.show()
+
+
+
+    if shouwDebug:
+        # Plotting the graph and image with the line
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
+
+        # Plot the grayscale image
+        ax1.imshow(image, cmap='gray')
+        ax1.plot([line_x_position, line_x_position], [0, height - 1], color='red', linestyle='--', linewidth=1.5)
+        ax1.axis('off')
+        ax1.set_title('Grayscale Image with Vertical Line')
+
+        # Plot the line profile
+        ax2.plot(range(height), line_values)
+        ax2.set_xlabel('Y Axis (Height of Image)')
+        ax2.set_ylabel('Pixel Value')
+        ax2.set_title('Vertical Line Profile')
+
+        # Plot the first derivative of the line profile
+        ax3.plot(range(height), line_first_derivative)
+        ax3.set_xlabel('Y Axis (Height of Image)')
+        ax3.set_ylabel('First Derivative')
+        ax3.set_title('First Derivative of Vertical Line Profile')
+
+        plt.tight_layout()
+        plt.show()
+
+
+def get_starting_point(image, column_start=200, shouwDebug=False):
     # Compute the vertical profile by averaging pixel values along the horizontal axis
     vertical_profile = np.mean(image, axis=1)
 
@@ -39,14 +109,16 @@ def get_starting_point(image, column_start=200):
     else:
         starting_point = -1
 
-    # Plot the vertical profile with the starting point
-    plt.plot(vertical_profile, color='b')
-    plt.scatter(starting_point, vertical_profile[starting_point], color='r', label='Starting Point')
-    plt.xlabel('Vertical Position')
-    plt.ylabel('Pixel Value')
-    plt.title('Vertical Profile with Starting Point')
-    plt.legend()
-    plt.show()
+        
+    if shouwDebug:
+        # Plot the vertical profile with the starting point
+        plt.plot(vertical_profile, color='b')
+        plt.scatter(starting_point, vertical_profile[starting_point], color='r', label='Starting Point')
+        plt.xlabel('Vertical Position')
+        plt.ylabel('Pixel Value')
+        plt.title('Vertical Profile with Starting Point')
+        plt.legend()
+        plt.show()
 
     # # Plot the vertical profile with all minima marked
     # plt.plot(vertical_profile, color='b')

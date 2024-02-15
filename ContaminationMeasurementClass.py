@@ -294,7 +294,11 @@ class ContaminationMeasurementClass:
 
         # plot_mean_pixel_values(roi)
         # plot_vertical_line_cv2(roi, 200)
-        get_starting_point(roi) 
+        starting_point = get_starting_point(roi) 
+        print("starting_point: ", starting_point)
+
+        find_contamination_height(roi, starting_point) 
+    
         # plot_different_x_positions_with_graph(open)   
         # # Visualization
         # images_to_visualize = [image,
