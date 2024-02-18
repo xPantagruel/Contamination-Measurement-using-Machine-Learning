@@ -297,7 +297,8 @@ class ContaminationMeasurementClass:
         starting_point = get_starting_point(roi) 
         print("starting_point: ", starting_point)
 
-        find_contamination_height(roi, starting_point) 
+        # find_contamination_height(roi, starting_point) 
+        maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point)
     
         # plot_different_x_positions_with_graph(open)   
         # # Visualization
@@ -307,7 +308,7 @@ class ContaminationMeasurementClass:
         #           "CloseImage", "Thresholded Image", "Scharr Edge Detection","ROI","Scharr ROI"]
 
         # self.visualize(images_to_visualize, titles)
-        return 0,0
+        return top_of_contamination, bottom_of_contamination
     
     def showHistogram(self, image_path):
         plot_histogram(image_path)

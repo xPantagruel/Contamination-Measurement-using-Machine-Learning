@@ -8,8 +8,7 @@ from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
 
-# find maximums and minimums arround starting point in vertical profile first derivation of image in middle of the image
-def find_contamination_height(image, starting_point, position = 200, num_rows=10, shouwDebug=False):
+def find_contamination_bottom_and_top(image, starting_point, position=200, num_rows=10, shouwDebug=False):
     # Get the dimensions of the image
     height, width = image.shape
 
@@ -29,7 +28,7 @@ def find_contamination_height(image, starting_point, position = 200, num_rows=10
     # Calculate the first derivative of the line values
     line_first_derivative = np.gradient(line_values)
 
-    # find maximums and minimums arround starting point in vertical profile first derivation of image about 300 arround starting point
+    # find maximums and minimums around starting point in vertical profile first derivation of image about 300 around starting point
     maxs = []
     mins = []
     for i in range(starting_point - 100, starting_point + 100):
@@ -38,45 +37,125 @@ def find_contamination_height(image, starting_point, position = 200, num_rows=10
                 maxs.append(i)
             if line_first_derivative[i] < line_first_derivative[i - 1] and line_first_derivative[i] < line_first_derivative[i + 1]:
                 mins.append(i)
+                
+    # Find the biggest maximum in the direction where y > starting_point
+    bottom_of_contamination = None
+    max_value = float('-inf')
+    for max_point in maxs:
+        if max_point > starting_point and line_first_derivative[max_point] > max_value:
+            bottom_of_contamination = max_point
+            max_value = line_first_derivative[max_point]
     
-    # show the graph of first derivation of image with maximums and minimums
-        # Plot the first derivative of the line profile
+    # Find the top of contamination, where y < starting_point and exhibits the biggest change from minimum to maximum towards the origin on the y-axis
+    top_of_contamination = None
+    max_difference = 0
+    print (mins)
+    print (maxs)
+    # Iterate from the starting point to the starting point - 200
+    for i in range(starting_point, starting_point - 200, -1):
+        # find the closest maximum from the minimum in direction of y < starting_point
+        if i in mins:
+            print ("in i:", i)
+            # go through the maximums and find the closest one to the minimum in direction of j < i and calculate the difference between them and if the difference is bigger than the previous one, set the top of contamination to the minimum and go to next minimum and do the same
+            for MaxN in maxs:
+                print(MaxN)
+                if MaxN in maxs and MaxN < i : 
+                    difference = line_first_derivative[MaxN] - line_first_derivative[i]
+                    if difference > max_difference:
+                        top_of_contamination = i
+                        max_difference = difference
+                    break
+    
+    if shouwDebug:
+        # Plot the first derivative of the line profile with maximums and minimums
+        plt.figure(figsize=(10, 5))
+        plt.subplot(1, 2, 1)
+        plt.imshow(image, cmap='gray')
+        plt.title('Original Image')
+        if top_of_contamination is not None:
+            plt.axhline(y=top_of_contamination, color='g', linestyle='--', linewidth=1.5)
+        if bottom_of_contamination is not None:
+            plt.axhline(y=bottom_of_contamination, color='r', linestyle='--', linewidth=1.5)
+        plt.subplot(1, 2, 2)
+        plt.plot(range(height), line_first_derivative)
+        plt.scatter(maxs, [line_first_derivative[i] for i in maxs], color='r', label='Max')
+        plt.scatter(mins, [line_first_derivative[i] for i in mins], color='g', label='Min')
+        if bottom_of_contamination is not None:
+            plt.scatter(bottom_of_contamination, line_first_derivative[bottom_of_contamination], color='b', label='Bottom of Contamination')
+        if top_of_contamination is not None:
+            plt.scatter(top_of_contamination, line_first_derivative[top_of_contamination], color='m', label='Top of Contamination')        
+        
+        plt.xlabel('Y Axis (Height of Image)')
+        plt.ylabel('First Derivative')
+        plt.title('First Derivative of Vertical Line Profile')
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+    # Return the found maximums and minimums
+    return maxs, mins, bottom_of_contamination, top_of_contamination
+
+def find_contamination_height(image, starting_point, position=200, num_rows=10, shouwDebug=False):
+    # Get the dimensions of the image
+    height, width = image.shape
+
+    # Extract the vertical line at the given position
+    if position == 0:
+        line_x_position = width // 2
+    else:
+        line_x_position = position
+
+    # Define the range of rows to consider around the initial position
+    start_row = max(0, line_x_position - num_rows)
+    end_row = min(width - 1, line_x_position + num_rows)
+
+    # Extract pixel values from the selected rows
+    line_values = np.mean(image[:, start_row:end_row + 1], axis=1)
+
+    # Calculate the first derivative of the line values
+    line_first_derivative = np.gradient(line_values)
+
+    # find maximums and minimums around starting point in vertical profile first derivation of image about 300 around starting point
+    maxs = []
+    mins = []
+    for i in range(starting_point - 100, starting_point + 100):
+        if i > 0 and i < height - 1:
+            if line_first_derivative[i] > line_first_derivative[i - 1] and line_first_derivative[i] > line_first_derivative[i + 1]:
+                maxs.append(i)
+            if line_first_derivative[i] < line_first_derivative[i - 1] and line_first_derivative[i] < line_first_derivative[i + 1]:
+                mins.append(i)
+                
+    # Find the biggest maximum in the direction where y > starting_point
+    bottom_of_contamination = None
+    max_value = float('-inf')
+    for max_point in maxs:
+        if max_point > starting_point and line_first_derivative[max_point] > max_value:
+            bottom_of_contamination = max_point
+            max_value = line_first_derivative[max_point]
+    
+    # Plot the first derivative of the line profile with maximums and minimums
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
+    plt.imshow(image, cmap='gray')
+    plt.title('Original Image')
+    if bottom_of_contamination is not None:
+        plt.axhline(y=bottom_of_contamination, color='r', linestyle='--', linewidth=1.5)
+    plt.subplot(1, 2, 2)
     plt.plot(range(height), line_first_derivative)
     plt.scatter(maxs, [line_first_derivative[i] for i in maxs], color='r', label='Max')
     plt.scatter(mins, [line_first_derivative[i] for i in mins], color='g', label='Min')
+    if bottom_of_contamination is not None:
+        plt.scatter(bottom_of_contamination, line_first_derivative[bottom_of_contamination], color='b', label='Biggest Max')        
+        
     plt.xlabel('Y Axis (Height of Image)')
     plt.ylabel('First Derivative')
     plt.title('First Derivative of Vertical Line Profile')
     plt.legend()
+    plt.tight_layout()
     plt.show()
 
-
-
-    if shouwDebug:
-        # Plotting the graph and image with the line
-        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
-
-        # Plot the grayscale image
-        ax1.imshow(image, cmap='gray')
-        ax1.plot([line_x_position, line_x_position], [0, height - 1], color='red', linestyle='--', linewidth=1.5)
-        ax1.axis('off')
-        ax1.set_title('Grayscale Image with Vertical Line')
-
-        # Plot the line profile
-        ax2.plot(range(height), line_values)
-        ax2.set_xlabel('Y Axis (Height of Image)')
-        ax2.set_ylabel('Pixel Value')
-        ax2.set_title('Vertical Line Profile')
-
-        # Plot the first derivative of the line profile
-        ax3.plot(range(height), line_first_derivative)
-        ax3.set_xlabel('Y Axis (Height of Image)')
-        ax3.set_ylabel('First Derivative')
-        ax3.set_title('First Derivative of Vertical Line Profile')
-
-        plt.tight_layout()
-        plt.show()
-
+    # Return the found maximums and minimums
+    return maxs, mins, bottom_of_contamination
 
 def get_starting_point(image, column_start=200, shouwDebug=False):
     # Compute the vertical profile by averaging pixel values along the horizontal axis
