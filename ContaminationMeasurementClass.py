@@ -299,6 +299,20 @@ class ContaminationMeasurementClass:
 
         # find_contamination_height(roi, starting_point) 
         maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point)
+
+        Store_Images_with_detected_lines = False
+        if Store_Images_with_detected_lines:
+            # store the image with the detected lines in the same directory with the name of file test
+            # create directory if it does not exist
+            if not os.path.exists('test'):
+                os.makedirs('test')
+            # save the image with the name image_name + test 
+            # create image to be saved where top and bottom will be marked as red and green lines horizontally
+            image_to_save = cv2.cvtColor(roi, cv2.COLOR_GRAY2BGR)
+            cv2.line(image_to_save, (0, top_of_contamination), (image_to_save.shape[1], top_of_contamination), (0, 255, 0), 2)
+            cv2.line(image_to_save, (0, bottom_of_contamination), (image_to_save.shape[1], bottom_of_contamination), (0, 0, 255), 2)
+
+            cv2.imwrite('test/' + os.path.basename(image_path) + 'test' + '.png', image_to_save )
     
         # plot_different_x_positions_with_graph(open)   
         # # Visualization
