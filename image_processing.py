@@ -7,6 +7,7 @@ import numpy as np
 from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
+from scipy.signal import find_peaks
 
 def find_contamination_bottom_and_top(image, starting_point, position=200, num_rows=10, shouwDebug=False):
     # Get the dimensions of the image
@@ -29,14 +30,26 @@ def find_contamination_bottom_and_top(image, starting_point, position=200, num_r
     line_first_derivative = np.gradient(line_values)
 
     # find maximums and minimums around starting point in vertical profile first derivation of image about 300 around starting point
-    maxs = []
-    mins = []
-    for i in range(starting_point - 100, starting_point + 100):
-        if i > 0 and i < height - 1:
-            if line_first_derivative[i] > line_first_derivative[i - 1] and line_first_derivative[i] > line_first_derivative[i + 1]:
-                maxs.append(i)
-            if line_first_derivative[i] < line_first_derivative[i - 1] and line_first_derivative[i] < line_first_derivative[i + 1]:
-                mins.append(i)
+    # maxs = []
+    # mins = []
+    # for i in range(starting_point - 100, starting_point + 100):
+    #     if i > 0 and i < height - 1:
+    #         if line_first_derivative[i] > line_first_derivative[i - 1] and line_first_derivative[i] > line_first_derivative[i + 1]:
+    #             maxs.append(i)
+    #         if line_first_derivative[i] < line_first_derivative[i - 1] and line_first_derivative[i] < line_first_derivative[i + 1]:
+    #             mins.append(i)
+    # Find all local maximums and minimums in the first derivative
+    # TODO I calculate the maxs and mins for whole graph but I can instead only the window arround the starting point 
+    maxs, _ = find_peaks(line_first_derivative, prominence=0)  # You can adjust prominence as needed
+    mins, _ = find_peaks(-line_first_derivative, prominence=0)  # Invert and find peaks for minima
+
+    # remove maxs and mins that are starting_point + 100 > and <
+    # Filter out maxs and mins that are outside the specified range
+    window = 150
+    start_index = max(0, starting_point - window)
+    end_index = min(height - 1, starting_point + window)
+    maxs = [max_point for max_point in maxs if start_index <= max_point <= end_index]
+    mins = [min_point for min_point in mins if start_index <= min_point <= end_index]
                 
     # Find the biggest maximum in the direction where y > starting_point
     bottom_of_contamination = None
@@ -49,16 +62,13 @@ def find_contamination_bottom_and_top(image, starting_point, position=200, num_r
     # Find the top of contamination, where y < starting_point and exhibits the biggest change from minimum to maximum towards the origin on the y-axis
     top_of_contamination = None
     max_difference = 0
-    print (mins)
-    print (maxs)
+
     # Iterate from the starting point to the starting point - 200
     for i in range(starting_point, starting_point - 200, -1):
         # find the closest maximum from the minimum in direction of y < starting_point
         if i in mins:
-            print ("in i:", i)
             # go through the maximums and find the closest one to the minimum in direction of j < i and calculate the difference between them and if the difference is bigger than the previous one, set the top of contamination to the minimum and go to next minimum and do the same
             for MaxN in maxs:
-                print(MaxN)
                 if MaxN in maxs and MaxN < i : 
                     difference = line_first_derivative[MaxN] - line_first_derivative[i]
                     if difference > max_difference:
