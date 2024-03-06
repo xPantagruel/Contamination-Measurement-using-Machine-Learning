@@ -9,7 +9,7 @@ from PIL import Image
 from statistics import mode
 from scipy.signal import find_peaks
 
-def find_contamination_bottom_and_top(image, starting_point, position=200, num_rows=10, shouwDebug=False):
+def find_contamination_bottom_and_top(image, starting_point, position=200, num_rows=40, shouwDebug=False):
     # Get the dimensions of the image
     height, width = image.shape
 
@@ -167,7 +167,48 @@ def find_contamination_height(image, starting_point, position=200, num_rows=10, 
     # Return the found maximums and minimums
     return maxs, mins, bottom_of_contamination
 
-def get_starting_point(image, column_start=200, shouwDebug=False):
+def get_starting_point_TEST(image, column_start=200, showDebug=False, TinBallEdge=0):
+    # Compute the vertical profile by averaging pixel values along the horizontal axis
+    vertical_profile = np.mean(image, axis=1)
+    starting_point = -1
+    # find all maximums and minimums 
+    maxs = []
+    mins = []
+    for i in range(1, len(vertical_profile) - 1):
+        if vertical_profile[i] > vertical_profile[i - 1] and vertical_profile[i] > vertical_profile[i + 1]:
+            maxs.append(i)
+        if vertical_profile[i] < vertical_profile[i - 1] and vertical_profile[i] < vertical_profile[i + 1]:
+            mins.append(i)
+
+    # Find potential starting points
+    starting_points = []
+    for min_point in mins:
+        for max_point in maxs:
+            if min_point < max_point and vertical_profile[max_point] - vertical_profile[min_point] > 40:
+                starting_points.append(min_point)
+                break
+        if starting_point != -1:
+            break
+
+    # Choose the starting point as the highest minimum
+    starting_point = max(starting_points) if starting_points else -1
+    
+    # show the graph with all maximums and minimums
+    if showDebug :
+        plt.plot(vertical_profile, color='b')
+        # show starting point
+        plt.scatter(starting_point, vertical_profile[starting_point], color='r', label='Starting Point')
+        # plt.scatter(maxs, [vertical_profile[i] for i in maxs], color='r', label='Max')
+        # plt.scatter(mins, [vertical_profile[i] for i in mins], color='g', label='Min')
+        plt.xlabel('Vertical Position')
+        plt.ylabel('Pixel Value')
+        plt.title('Vertical Profile with Maxs and Mins')
+        plt.legend()
+        plt.show()
+
+    return starting_point
+
+def get_starting_point(image, column_start=200, showDebug=False,TinBallEdge=0):
     # Compute the vertical profile by averaging pixel values along the horizontal axis
     vertical_profile = np.mean(image, axis=1)
 
@@ -199,13 +240,16 @@ def get_starting_point(image, column_start=200, shouwDebug=False):
         starting_point = -1
 
         
-    if shouwDebug:
-        # Plot the vertical profile with the starting point
+    if showDebug :
+        # Plot the vertical profile with the starting point and the best pair of minima
         plt.plot(vertical_profile, color='b')
         plt.scatter(starting_point, vertical_profile[starting_point], color='r', label='Starting Point')
+        if best_pair is not None:
+            plt.scatter(best_pair[0], vertical_profile[best_pair[0]], color='g', label='Minima 1')
+            plt.scatter(best_pair[1], vertical_profile[best_pair[1]], color='m', label='Minima 2')
         plt.xlabel('Vertical Position')
         plt.ylabel('Pixel Value')
-        plt.title('Vertical Profile with Starting Point')
+        plt.title('Vertical Profile with Starting Point and Best Minima Pair')
         plt.legend()
         plt.show()
 

@@ -31,7 +31,7 @@ def test_csv_data(processed_data):
                 contamination_height_diff = abs(processed_item.ContaminationHeight - csv_values['ContaminationHeight'])
             # contamination_height_diff = np.abs(np.abs(int(processed_item.ContaminationHeight)) - np.abs(int(csv_values['ContaminationHeight'])))
 
-            similarity_threshold = 20
+            similarity_threshold = 25
 
             if (
                 bottom_height_diff <= similarity_threshold

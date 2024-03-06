@@ -254,8 +254,8 @@ class ContaminationMeasurementClass:
     
     def measure_contamination7(self, image_path):
         image = load_image(image_path)
-        preprocessed_image = self.cutt_off_edges(image)
-        OpenImage = apply_opening(preprocessed_image)
+        # preprocessed_image = self.cutt_off_edges(image)
+        OpenImage = apply_opening(image)
         CloseImage = apply_closing(OpenImage)
 
         kernel_size = 11
@@ -281,26 +281,18 @@ class ContaminationMeasurementClass:
         print("LeftYContamination: ", LeftYContamination)
         print("RightYContamination: ", RightYContamination)
         
+        # zero contamination check 
+        if LeftYContamination == -1 or RightYContamination == -1:
+            return 0,0
+        
         roi = get_Roi(blurred_image, LeftYContamination, RightYContamination)
-        
-        # thresholded_roi1 = thresholding(
-        #     roi, 96, 255, cv2.THRESH_TOZERO)
-        # thresholded_roi = thresholding(
-        #     thresholded_roi1, 100, 255, cv2.THRESH_TRUNC)
-        
-        # scharr_roi = self.scharr(roi)
-        # close = apply_closing(scharr_roi)
-        # open = apply_opening(close)
-
-        # plot_mean_pixel_values(roi)
-        # plot_vertical_line_cv2(roi, 200)
-        starting_point = get_starting_point(roi) 
+        starting_point = get_starting_point_TEST(roi, showDebug=False, TinBallEdge = MaxY)
+        # starting_point = get_starting_point(roi, showDebug=True, TinBallEdge = MaxY)
         print("starting_point: ", starting_point)
 
         # find_contamination_height(roi, starting_point) 
-        maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point)
-
-        Store_Images_with_detected_lines = False
+        maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point,shouwDebug=False)
+        Store_Images_with_detected_lines = True
         if Store_Images_with_detected_lines:
             # store the image with the detected lines in the same directory with the name of file test
             # create directory if it does not exist
