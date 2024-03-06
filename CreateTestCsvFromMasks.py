@@ -73,17 +73,20 @@ def measure_red_height(image_path, column):
     if first_red is None or last_red is None:
         print(f"No red pixels found in column {column} of {image_path}")
         return None
+
     height = last_red[1] - first_red[1]
     
     # show in the image the first and last red pixel with lines 
     
-    # cv2.line(img, first_red, (first_red[0] + 10, first_red[1]), (0, 255, 0), 2)
+    # cv2.line(img, first_red, (first_red[0] + 10, first_red[1]), (122, 122, 122), 2)
     # cv2.line(img, last_red, (last_red[0] + 10, last_red[1]), (0, 255, 0), 2)
     # cv2.imshow('Result', img)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-    
-    return height, first_red[1], last_red[1]
+
+    # last red  = top 
+    # first red = bottom    
+    return height,  first_red[1],last_red[1]
 
 # Path to the folder containing images
 # in actual folder will be folder maskks with images

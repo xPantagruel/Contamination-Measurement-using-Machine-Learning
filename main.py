@@ -5,25 +5,28 @@ import multiprocessing
 from DataClass import ProcessedData 
 from tests import test_csv_data
 
-use_multiprocessing = True
-do_Tests = False
+use_multiprocessing = False
+do_Tests = True
 
 def process_image(image_path):
     print("Processing image: " + image_path)
     contamination_measurement = ContaminationMeasurementClass()
     BottomHeight,TopHeight = contamination_measurement.measure_contamination7(image_path)
     
+    if BottomHeight == None or TopHeight == None:
+        print("Error processing image: " + image_path)
+        return None
     Height = BottomHeight - TopHeight
     image_name = os.path.basename(image_path)
 
-    data_instance = ProcessedData(ImageName=image_name, BottomHeightY=BottomHeight, TopHeightY=TopHeight, ContaminationHeight=Height)
+    data_instance = ProcessedData(ImageName=image_name, BottomHeightY=int(BottomHeight), TopHeightY=int(TopHeight), ContaminationHeight=int(Height))
     print("Finished processing image: " + image_path)
     return data_instance
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "Images/Default")
+    folder_path = os.path.join(current_directory, "failed/testing")
 
     image_paths = load_images_from_folder(folder_path)
 
@@ -49,6 +52,6 @@ if __name__ == "__main__":
     if do_Tests:
         test_csv_data(Results)
     
-    print("Results: ", Results)
+    # print("Results: ", Results)
 
     print("All processes have finished.")
