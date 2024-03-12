@@ -9,7 +9,7 @@ from PIL import Image
 from statistics import mode
 from scipy.signal import find_peaks
 
-def find_contamination_bottom_and_top(image, starting_point, position=200, num_rows=40, shouwDebug=False):
+def find_contamination_bottom_and_top(image, starting_point, position=0, num_rows=50, shouwDebug=False):
     # Get the dimensions of the image
     height, width = image.shape
 
@@ -28,16 +28,7 @@ def find_contamination_bottom_and_top(image, starting_point, position=200, num_r
 
     # Calculate the first derivative of the line values
     line_first_derivative = np.gradient(line_values)
-
-    # find maximums and minimums around starting point in vertical profile first derivation of image about 300 around starting point
-    # maxs = []
-    # mins = []
-    # for i in range(starting_point - 100, starting_point + 100):
-    #     if i > 0 and i < height - 1:
-    #         if line_first_derivative[i] > line_first_derivative[i - 1] and line_first_derivative[i] > line_first_derivative[i + 1]:
-    #             maxs.append(i)
-    #         if line_first_derivative[i] < line_first_derivative[i - 1] and line_first_derivative[i] < line_first_derivative[i + 1]:
-    #             mins.append(i)
+    
     # Find all local maximums and minimums in the first derivative
     # TODO I calculate the maxs and mins for whole graph but I can instead only the window arround the starting point 
     maxs, _ = find_peaks(line_first_derivative, prominence=0)  # You can adjust prominence as needed
@@ -45,7 +36,7 @@ def find_contamination_bottom_and_top(image, starting_point, position=200, num_r
 
     # remove maxs and mins that are starting_point + 100 > and <
     # Filter out maxs and mins that are outside the specified range
-    window = 150
+    window = 160
     start_index = max(0, starting_point - window)
     end_index = min(height - 1, starting_point + window)
     maxs = [max_point for max_point in maxs if start_index <= max_point <= end_index]
@@ -82,10 +73,15 @@ def find_contamination_bottom_and_top(image, starting_point, position=200, num_r
         plt.subplot(1, 2, 1)
         plt.imshow(image, cmap='gray')
         plt.title('Original Image')
+
         if top_of_contamination is not None:
             plt.axhline(y=top_of_contamination, color='g', linestyle='--', linewidth=1.5)
         if bottom_of_contamination is not None:
             plt.axhline(y=bottom_of_contamination, color='r', linestyle='--', linewidth=1.5)
+        # show start and end of selected columns
+        plt.axvline(x=start_row, color='r', linestyle='--', linewidth=1.5)
+        plt.axvline(x=end_row, color='r', linestyle='--', linewidth=1.5)
+        
         plt.subplot(1, 2, 2)
         plt.plot(range(height), line_first_derivative)
         plt.scatter(maxs, [line_first_derivative[i] for i in maxs], color='r', label='Max')
@@ -94,6 +90,7 @@ def find_contamination_bottom_and_top(image, starting_point, position=200, num_r
             plt.scatter(bottom_of_contamination, line_first_derivative[bottom_of_contamination], color='b', label='Bottom of Contamination')
         if top_of_contamination is not None:
             plt.scatter(top_of_contamination, line_first_derivative[top_of_contamination], color='m', label='Top of Contamination')        
+
         
         plt.xlabel('Y Axis (Height of Image)')
         plt.ylabel('First Derivative')
@@ -168,8 +165,9 @@ def find_contamination_height(image, starting_point, position=200, num_rows=10, 
     return maxs, mins, bottom_of_contamination
 
 def get_starting_point_TEST(image, column_start=200, showDebug=False, TinBallEdge=0):
-    # Compute the vertical profile by averaging pixel values along the horizontal axis
-    vertical_profile = np.mean(image, axis=1)
+    # Compute the vertical profile by averaging pixel values along the horizontal axis in middle only 50 pixels in each direction 
+    vertical_profile = np.mean(image[:, column_start - 100:column_start + 100], axis=1)
+    # vertical_profile = np.mean(image, axis=1)
     starting_point = -1
     # find all maximums and minimums 
     maxs = []
@@ -187,10 +185,12 @@ def get_starting_point_TEST(image, column_start=200, showDebug=False, TinBallEdg
             if min_point < max_point and vertical_profile[max_point] - vertical_profile[min_point] > 40:
                 starting_points.append(min_point)
                 break
-        if starting_point != -1:
-            break
 
     # Choose the starting point as the highest minimum
+    # TODO TEST IT 
+    # remove starting points that are not in the range bigger than tin ball edge
+    starting_points = [point for point in starting_points if point > TinBallEdge]
+    
     starting_point = max(starting_points) if starting_points else -1
     
     # show the graph with all maximums and minimums
