@@ -21,7 +21,7 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
 
     # Define the range of rows to consider around the initial position
     start_row = max(0, line_x_position - num_rows)
-    end_row = min(width - 1, line_x_position + num_rows)
+    end_row = min(width - 1, line_x_position + num_rows) + 30 # add more columns in direction to right from middle of contamination
 
     # Extract pixel values from the selected rows
     line_values = np.mean(image[:, start_row:end_row + 1], axis=1)
@@ -36,7 +36,7 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
 
     # remove maxs and mins that are starting_point + 100 > and <
     # Filter out maxs and mins that are outside the specified range
-    window = 160
+    window = 180
     start_index = max(0, starting_point - window)
     end_index = min(height - 1, starting_point + window)
     maxs = [max_point for max_point in maxs if start_index <= max_point <= end_index]
@@ -55,7 +55,7 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
     max_difference = 0
 
     # Iterate from the starting point to the starting point - 200
-    for i in range(starting_point, starting_point - 200, -1):
+    for i in range(bottom_of_contamination, bottom_of_contamination - 200, -1):
         # find the closest maximum from the minimum in direction of y < starting_point
         if i in mins:
             # go through the maximums and find the closest one to the minimum in direction of j < i and calculate the difference between them and if the difference is bigger than the previous one, set the top of contamination to the minimum and go to next minimum and do the same
@@ -75,12 +75,14 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
         plt.title('Original Image')
 
         if top_of_contamination is not None:
-            plt.axhline(y=top_of_contamination, color='g', linestyle='--', linewidth=1.5)
+            plt.axhline(y=top_of_contamination, color='m', linestyle='--', linewidth=1.5)
         if bottom_of_contamination is not None:
-            plt.axhline(y=bottom_of_contamination, color='r', linestyle='--', linewidth=1.5)
+            plt.axhline(y=bottom_of_contamination, color='b', linestyle='--', linewidth=1.5)
+        if starting_point is not None:
+            plt.axhline(y=starting_point, color='y', linestyle='--', linewidth=1.5)
         # show start and end of selected columns
-        plt.axvline(x=start_row, color='r', linestyle='--', linewidth=1.5)
-        plt.axvline(x=end_row, color='r', linestyle='--', linewidth=1.5)
+        plt.axvline(x=start_row, color='r', linestyle=':', linewidth=1.5)
+        plt.axvline(x=end_row, color='r', linestyle=':', linewidth=1.5)
         
         plt.subplot(1, 2, 2)
         plt.plot(range(height), line_first_derivative)

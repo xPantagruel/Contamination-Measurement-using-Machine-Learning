@@ -283,6 +283,13 @@ class ContaminationMeasurementClass:
         
         # zero contamination check 
         if LeftYContamination == -1 or RightYContamination == -1:
+            # store the image 
+            # create directory if it does not exist
+            if not os.path.exists('zero_contamination'):
+                os.makedirs('zero_contamination')
+            # save the image with the name image_name + test
+            cv2.imwrite('zero_contamination/' + os.path.basename(image_path) + '.png', image )
+            
             return 0,0
         
         roi = get_Roi(blurred_image, LeftYContamination, RightYContamination)
@@ -292,7 +299,7 @@ class ContaminationMeasurementClass:
 
         # find_contamination_height(roi, starting_point) 
         maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point,shouwDebug=False)
-        Store_Images_with_detected_lines = True
+        Store_Images_with_detected_lines = False
         if Store_Images_with_detected_lines:
             # store the image with the detected lines in the same directory with the name of file test
             # create directory if it does not exist
