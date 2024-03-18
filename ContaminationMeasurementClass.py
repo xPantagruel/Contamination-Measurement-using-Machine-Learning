@@ -299,7 +299,7 @@ class ContaminationMeasurementClass:
 
         # find_contamination_height(roi, starting_point) 
         maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point,shouwDebug=False)
-        Store_Images_with_detected_lines = False
+        Store_Images_with_detected_lines = True
         if Store_Images_with_detected_lines:
             # store the image with the detected lines in the same directory with the name of file test
             # create directory if it does not exist
@@ -322,7 +322,11 @@ class ContaminationMeasurementClass:
 
         # self.visualize(images_to_visualize, titles)
         return top_of_contamination, bottom_of_contamination
-    
+    def measure_contamination8(self, image_path):
+        image = load_image(image_path)
+        ThinFilmImplementation(image)
+        return 0,0
+
     def showHistogram(self, image_path):
         plot_histogram(image_path)
 
