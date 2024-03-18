@@ -39,11 +39,7 @@ def ThinFilmImplementation(image):
     noise_reduced = closing(erosion(binary_image, disk_mask), disk_mask)
     
     # Perform dilation and erosion for edge recognition
-    edge_recognition = opening(dilation(binary_image, disk_structure), disk_structure)
-    
-    # Fit the effective edge using the least square method
-    
-    # Zoom the effective region by 3~5 pixels
+    edge_recognition = opening(dilation(binary_image, disk_structure), disk_structure)    
     
     # Resize the interferogram to 512x512
     resized_interferogram = cv2.resize(image, (512, 512))
@@ -119,11 +115,11 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
     
     if shouwDebug:
         # Plot the first derivative of the line profile with maximums and minimums
-        plt.figure(figsize=(10, 5))
-        plt.subplot(1, 2, 1)
-        plt.imshow(image, cmap='gray')
-        plt.title('Original Image')
+        plt.figure(figsize=(15, 5))
 
+        # Plot the original image with highlighted points
+        plt.subplot(1, 3, 1)
+        plt.imshow(image, cmap='gray')
         if top_of_contamination is not None:
             plt.axhline(y=top_of_contamination, color='m', linestyle='--', linewidth=1.5)
         if bottom_of_contamination is not None:
@@ -133,20 +129,36 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
         # show start and end of selected columns
         plt.axvline(x=start_row, color='r', linestyle=':', linewidth=1.5)
         plt.axvline(x=end_row, color='r', linestyle=':', linewidth=1.5)
-        
-        plt.subplot(1, 2, 2)
+        plt.title('Original Image')
+
+        # Plot the first derivative of the line profile
+        plt.subplot(1, 3, 2)
         plt.plot(range(height), line_first_gradient)
         plt.scatter(maxs, [line_first_gradient[i] for i in maxs], color='r', label='Max')
         plt.scatter(mins, [line_first_gradient[i] for i in mins], color='g', label='Min')
         if bottom_of_contamination is not None:
             plt.scatter(bottom_of_contamination, line_first_gradient[bottom_of_contamination], color='b', label='Bottom of Contamination')
         if top_of_contamination is not None:
-            plt.scatter(top_of_contamination, line_first_gradient[top_of_contamination], color='m', label='Top of Contamination')        
-
+            plt.scatter(top_of_contamination, line_first_gradient[top_of_contamination], color='m', label='Top of Contamination')
         plt.xlabel('Y Axis (Height of Image)')
         plt.ylabel('First Derivative')
         plt.title('First Derivative of Vertical Line Profile')
         plt.legend()
+
+        # Plot the line values
+        plt.subplot(1, 3, 3)
+        plt.plot(range(height), line_values)
+        if starting_point is not None:
+            plt.scatter(starting_point, line_values[starting_point], color='y', label='Starting Point')
+        # if bottom_of_contamination is not None:
+        #     plt.scatter(bottom_of_contamination, line_values[bottom_of_contamination], color='b', label='Bottom of Contamination')
+        # if top_of_contamination is not None:
+        #     plt.scatter(top_of_contamination, line_values[top_of_contamination], color='m', label='Top of Contamination')
+        plt.xlabel('Y Axis (Height of Image)')
+        plt.ylabel('Pixel Value')
+        plt.title('Vertical Line Profile')
+        plt.legend()
+
         plt.tight_layout()
         plt.show()
 
