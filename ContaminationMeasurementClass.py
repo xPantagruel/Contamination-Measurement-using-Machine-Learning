@@ -283,6 +283,13 @@ class ContaminationMeasurementClass:
         
         # zero contamination check 
         if LeftYContamination == -1 or RightYContamination == -1:
+            # store the image 
+            # create directory if it does not exist
+            if not os.path.exists('zero_contamination'):
+                os.makedirs('zero_contamination')
+            # save the image with the name image_name + test
+            cv2.imwrite('zero_contamination/' + os.path.basename(image_path) + '.png', image )
+            
             return 0,0
         
         roi = get_Roi(blurred_image, LeftYContamination, RightYContamination)
@@ -315,7 +322,11 @@ class ContaminationMeasurementClass:
 
         # self.visualize(images_to_visualize, titles)
         return top_of_contamination, bottom_of_contamination
-    
+    def measure_contamination8(self, image_path):
+        image = load_image(image_path)
+        ThinFilmImplementation(image)
+        return 0,0
+
     def showHistogram(self, image_path):
         plot_histogram(image_path)
 

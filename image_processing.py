@@ -8,6 +8,50 @@ from scipy.ndimage import gaussian_laplace
 from PIL import Image
 from statistics import mode
 from scipy.signal import find_peaks
+def dilation(image, kernel):
+    return cv2.dilate(image, kernel)
+
+def erosion(image, kernel):
+    return cv2.erode(image, kernel)
+
+def opening(image, kernel):
+    return cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+
+def closing(image, kernel):
+    return cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernel)
+
+def ThinFilmImplementation(image):    
+    # Apply Otsu thresholding to convert to binary image
+    _, binary_image = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    
+    # Define the structure elements
+    disk_mask = np.array([[0, 1, 0],
+                          [1, 1, 1],
+                          [0, 1, 0]], dtype=np.uint8)
+    
+    disk_structure = np.array([[0, 0, 1, 0, 0],
+                               [0, 1, 1, 1, 0],
+                               [1, 1, 1, 1, 1],
+                               [0, 1, 1, 1, 0],
+                               [0, 0, 1, 0, 0]], dtype=np.uint8)
+    
+    # Perform dilation and erosion for noise reduction
+    noise_reduced = closing(erosion(binary_image, disk_mask), disk_mask)
+    
+    # Perform dilation and erosion for edge recognition
+    edge_recognition = opening(dilation(binary_image, disk_structure), disk_structure)    
+    
+    # Resize the interferogram to 512x512
+    resized_interferogram = cv2.resize(image, (512, 512))
+    
+    # Display the results
+    cv2.imshow('Original Interferogram', image)
+    cv2.imshow('Binary Image', binary_image)
+    cv2.imshow('Noise Reduced Image', noise_reduced)
+    cv2.imshow('Edge Recognition', edge_recognition)
+    cv2.imshow('Resized Interferogram', resized_interferogram)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 def find_contamination_bottom_and_top(image, starting_point, position=0, num_rows=50, shouwDebug=False):
     # Get the dimensions of the image
@@ -21,22 +65,24 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
 
     # Define the range of rows to consider around the initial position
     start_row = max(0, line_x_position - num_rows)
-    end_row = min(width - 1, line_x_position + num_rows)
+    end_row = min(width - 1, line_x_position + num_rows) + 30 # add more columns in direction to right from middle of contamination
 
     # Extract pixel values from the selected rows
     line_values = np.mean(image[:, start_row:end_row + 1], axis=1)
 
     # Calculate the first derivative of the line values
-    line_first_derivative = np.gradient(line_values)
+    line_first_gradient = np.gradient(line_values)
+    line_first_derivative = np.diff(line_values)
+
     
     # Find all local maximums and minimums in the first derivative
     # TODO I calculate the maxs and mins for whole graph but I can instead only the window arround the starting point 
-    maxs, _ = find_peaks(line_first_derivative, prominence=0)  # You can adjust prominence as needed
-    mins, _ = find_peaks(-line_first_derivative, prominence=0)  # Invert and find peaks for minima
+    maxs, _ = find_peaks(line_first_gradient, prominence=0)  # You can adjust prominence as needed
+    mins, _ = find_peaks(-line_first_gradient, prominence=0)  # Invert and find peaks for minima
 
     # remove maxs and mins that are starting_point + 100 > and <
     # Filter out maxs and mins that are outside the specified range
-    window = 160
+    window = 180
     start_index = max(0, starting_point - window)
     end_index = min(height - 1, starting_point + window)
     maxs = [max_point for max_point in maxs if start_index <= max_point <= end_index]
@@ -46,22 +92,22 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
     bottom_of_contamination = None
     max_value = float('-inf')
     for max_point in maxs:
-        if max_point > starting_point and line_first_derivative[max_point] > max_value:
+        if max_point > starting_point and line_first_gradient[max_point] > max_value:
             bottom_of_contamination = max_point
-            max_value = line_first_derivative[max_point]
+            max_value = line_first_gradient[max_point]
     
     # Find the top of contamination, where y < starting_point and exhibits the biggest change from minimum to maximum towards the origin on the y-axis
     top_of_contamination = None
     max_difference = 0
 
     # Iterate from the starting point to the starting point - 200
-    for i in range(starting_point, starting_point - 200, -1):
+    for i in range(bottom_of_contamination, bottom_of_contamination - 200, -1):
         # find the closest maximum from the minimum in direction of y < starting_point
         if i in mins:
             # go through the maximums and find the closest one to the minimum in direction of j < i and calculate the difference between them and if the difference is bigger than the previous one, set the top of contamination to the minimum and go to next minimum and do the same
             for MaxN in maxs:
                 if MaxN in maxs and MaxN < i : 
-                    difference = line_first_derivative[MaxN] - line_first_derivative[i]
+                    difference = line_first_gradient[MaxN] - line_first_gradient[i]
                     if difference > max_difference:
                         top_of_contamination = i
                         max_difference = difference
@@ -69,33 +115,50 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
     
     if shouwDebug:
         # Plot the first derivative of the line profile with maximums and minimums
-        plt.figure(figsize=(10, 5))
-        plt.subplot(1, 2, 1)
+        plt.figure(figsize=(15, 5))
+
+        # Plot the original image with highlighted points
+        plt.subplot(1, 3, 1)
         plt.imshow(image, cmap='gray')
+        if top_of_contamination is not None:
+            plt.axhline(y=top_of_contamination, color='m', linestyle='--', linewidth=1.5)
+        if bottom_of_contamination is not None:
+            plt.axhline(y=bottom_of_contamination, color='b', linestyle='--', linewidth=1.5)
+        if starting_point is not None:
+            plt.axhline(y=starting_point, color='y', linestyle='--', linewidth=1.5)
+        # show start and end of selected columns
+        plt.axvline(x=start_row, color='r', linestyle=':', linewidth=1.5)
+        plt.axvline(x=end_row, color='r', linestyle=':', linewidth=1.5)
         plt.title('Original Image')
 
-        if top_of_contamination is not None:
-            plt.axhline(y=top_of_contamination, color='g', linestyle='--', linewidth=1.5)
+        # Plot the first derivative of the line profile
+        plt.subplot(1, 3, 2)
+        plt.plot(range(height), line_first_gradient)
+        plt.scatter(maxs, [line_first_gradient[i] for i in maxs], color='r', label='Max')
+        plt.scatter(mins, [line_first_gradient[i] for i in mins], color='g', label='Min')
         if bottom_of_contamination is not None:
-            plt.axhline(y=bottom_of_contamination, color='r', linestyle='--', linewidth=1.5)
-        # show start and end of selected columns
-        plt.axvline(x=start_row, color='r', linestyle='--', linewidth=1.5)
-        plt.axvline(x=end_row, color='r', linestyle='--', linewidth=1.5)
-        
-        plt.subplot(1, 2, 2)
-        plt.plot(range(height), line_first_derivative)
-        plt.scatter(maxs, [line_first_derivative[i] for i in maxs], color='r', label='Max')
-        plt.scatter(mins, [line_first_derivative[i] for i in mins], color='g', label='Min')
-        if bottom_of_contamination is not None:
-            plt.scatter(bottom_of_contamination, line_first_derivative[bottom_of_contamination], color='b', label='Bottom of Contamination')
+            plt.scatter(bottom_of_contamination, line_first_gradient[bottom_of_contamination], color='b', label='Bottom of Contamination')
         if top_of_contamination is not None:
-            plt.scatter(top_of_contamination, line_first_derivative[top_of_contamination], color='m', label='Top of Contamination')        
-
-        
+            plt.scatter(top_of_contamination, line_first_gradient[top_of_contamination], color='m', label='Top of Contamination')
         plt.xlabel('Y Axis (Height of Image)')
         plt.ylabel('First Derivative')
         plt.title('First Derivative of Vertical Line Profile')
         plt.legend()
+
+        # Plot the line values
+        plt.subplot(1, 3, 3)
+        plt.plot(range(height), line_values)
+        if starting_point is not None:
+            plt.scatter(starting_point, line_values[starting_point], color='y', label='Starting Point')
+        # if bottom_of_contamination is not None:
+        #     plt.scatter(bottom_of_contamination, line_values[bottom_of_contamination], color='b', label='Bottom of Contamination')
+        # if top_of_contamination is not None:
+        #     plt.scatter(top_of_contamination, line_values[top_of_contamination], color='m', label='Top of Contamination')
+        plt.xlabel('Y Axis (Height of Image)')
+        plt.ylabel('Pixel Value')
+        plt.title('Vertical Line Profile')
+        plt.legend()
+
         plt.tight_layout()
         plt.show()
 
@@ -170,18 +233,14 @@ def get_starting_point_TEST(image, column_start=200, showDebug=False, TinBallEdg
     # vertical_profile = np.mean(image, axis=1)
     starting_point = -1
     # find all maximums and minimums 
-    maxs = []
-    mins = []
-    for i in range(1, len(vertical_profile) - 1):
-        if vertical_profile[i] > vertical_profile[i - 1] and vertical_profile[i] > vertical_profile[i + 1]:
-            maxs.append(i)
-        if vertical_profile[i] < vertical_profile[i - 1] and vertical_profile[i] < vertical_profile[i + 1]:
-            mins.append(i)
+    # Find all local maximas and minimas using scipy.signal.find_peaks
+    max_peaks, _ = find_peaks(vertical_profile)
+    min_peaks, _ = find_peaks(-vertical_profile)
 
     # Find potential starting points
     starting_points = []
-    for min_point in mins:
-        for max_point in maxs:
+    for min_point in min_peaks:
+        for max_point in max_peaks:
             if min_point < max_point and vertical_profile[max_point] - vertical_profile[min_point] > 40:
                 starting_points.append(min_point)
                 break
@@ -197,9 +256,9 @@ def get_starting_point_TEST(image, column_start=200, showDebug=False, TinBallEdg
     if showDebug :
         plt.plot(vertical_profile, color='b')
         # show starting point
-        plt.scatter(starting_point, vertical_profile[starting_point], color='r', label='Starting Point')
-        # plt.scatter(maxs, [vertical_profile[i] for i in maxs], color='r', label='Max')
-        # plt.scatter(mins, [vertical_profile[i] for i in mins], color='g', label='Min')
+        plt.scatter(starting_point, vertical_profile[starting_point], color='b', label='Starting Point')
+        # plt.scatter(max_peaks, [vertical_profile[i] for i in max_peaks], color='r', label='Max')
+        # plt.scatter(min_peaks, [vertical_profile[i] for i in min_peaks], color='g', label='Min')
         plt.xlabel('Vertical Position')
         plt.ylabel('Pixel Value')
         plt.title('Vertical Profile with Maxs and Mins')
