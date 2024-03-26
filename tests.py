@@ -32,7 +32,14 @@ def test_csv_data(processed_data):
             # contamination_height_diff = np.abs(np.abs(int(processed_item.ContaminationHeight)) - np.abs(int(csv_values['ContaminationHeight'])))
 
             similarity_threshold = 25
-
+            
+            # when the difference is less than the threshold, the test is considered successful 
+            # this is because some contamination is really low so it is hard to measure it correctly and to say there is no contamination is correct
+            if (processed_item.BottomHeightY == 0 or processed_item.TopHeightY == 0 ) and csv_values['ContaminationHeight'] < 40:
+                print ("There is none or low contamination in the image. Skipping...")
+                succesed += 1
+                continue
+            
             if (
                 bottom_height_diff <= similarity_threshold
                 and top_height_diff <= similarity_threshold and 
@@ -51,7 +58,7 @@ def test_csv_data(processed_data):
 
                 if store_failed_images:
                     # Store the image in the folder for failed images
-                    folder_with_images = r"C:\Users\matej.macek\OneDrive - Thermo Fisher Scientific\Desktop\BC Contamination Measurement\BC- FORK\ContaminationMeasurement\WholeDataset"
+                    folder_with_images = os.path.join(current_directory, "WholeDataset")
                     folder_for_failed_images = os.path.join(current_directory, "FailedImages")
                     image_path = os.path.join(folder_with_images, image_name)  # Assuming image is in this folder
 

@@ -236,15 +236,23 @@ def get_starting_point_TEST(image, column_start=200, showDebug=False, TinBallEdg
     # Find all local maximas and minimas using scipy.signal.find_peaks
     max_peaks, _ = find_peaks(vertical_profile)
     min_peaks, _ = find_peaks(-vertical_profile)
-
+    
+    # add to max peaks the last point of the vertical profile
+    max_peaks = np.append(max_peaks, len(vertical_profile) - 1)
     # Find potential starting points
     starting_points = []
-    for min_point in min_peaks:
-        for max_point in max_peaks:
-            if min_point < max_point and vertical_profile[max_point] - vertical_profile[min_point] > 40:
-                starting_points.append(min_point)
-                break
+    threshold_value = 40  # Threshold value for the difference between max and min
+    # range 40 to 0 
+    for threshold_value in range(threshold_value, 0, -1):
+        for min_point in min_peaks:
+            for max_point in max_peaks:
+                if min_point < max_point and vertical_profile[max_point] - vertical_profile[min_point] > threshold_value:
+                    starting_points.append(min_point)
+                    break
+        if starting_points != []:
+            break
 
+    
     # Choose the starting point as the highest minimum
     # TODO TEST IT 
     # remove starting points that are not in the range bigger than tin ball edge
