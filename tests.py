@@ -18,6 +18,8 @@ def test_csv_data(processed_data):
         if processed_item is None:
             continue
         image_name = processed_item.ImageName
+        # change the image end from .png to .jpg
+        image_name = image_name.replace(".jpg",".png")
         csv_row = data[data['ImageName'] == image_name]
 
         if not csv_row.empty:
