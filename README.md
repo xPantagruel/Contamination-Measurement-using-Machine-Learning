@@ -64,3 +64,35 @@ https://www.sciencedirect.com/science/article/pii/S0894177715001405?casa_token=M
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8300062/
 
 # FIX :
+
+# DATA AUGMENTATION 
+https://www.mdpi.com/2076-3417/11/15/6721
+
+
+PLan:
+- WHat to do next: 
+  measure error for both datasetds
+    it will be measured on uniq dataset where I will choose only the images that the methods is working on and exclude the images without contamination
+    I want to measure difference for bottom and for top and than for the height
+  validate the error and write about it in the thesis 
+  I can try the error measurement on folder WholeDataset and compare results that should be for the model much better
+
+
+
+  CODE : 
+    error measurement
+    train the model on more epochs than 25 
+    refactor whole model training and verify that it is still training right 
+    refactor whole first method 
+
+  WRITE: 
+    implementation first method 
+    implementation second method 
+    write about comparing 2 models that has different dataset at the beggining and that I want the model trained on dataset that has contamination because We rather get false result of contamination than NONE 
+    write about choosing right model and verifying the model according to results of f1 score and so on 
+    rewrite first 3 chapters and push it to the supervisor in the Company
+    compare methods to each other and say which one will be use and is better
+  
+  DEADLINES : 
+    21.4. POSTER for Excel at fit
+    9.5. BC thesis 
