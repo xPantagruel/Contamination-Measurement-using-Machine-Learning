@@ -83,7 +83,8 @@ PLan:
     error measurement
     train the model on more epochs than 25 
     refactor whole model training and verify that it is still training right 
-    refactor whole first method 
+    refactor whole first method
+    find the right threshold value for model by implementing storing error measurements for different threshold values and than the lowest one is the best 
 
   WRITE: 
     implementation first method 
@@ -92,7 +93,31 @@ PLan:
     write about choosing right model and verifying the model according to results of f1 score and so on 
     rewrite first 3 chapters and push it to the supervisor in the Company
     compare methods to each other and say which one will be use and is better
+    write about getting right threshold for model mask
   
   DEADLINES : 
     21.4. POSTER for Excel at fit
     9.5. BC thesis 
+
+
+  RESULTS: (error measurements on uniq images)
+    First method : 569 succesed, 87 failed 
+      height MAE: 5.2555555555555555
+      height MSE: 45.522222222222226
+      height RMSE: 6.747015801242963
+      top MAE: 3.4851851851851854
+      top MSE: 21.596296296296295
+      top RMSE: 4.647181543290115
+      bottom MAE: 6.333333333333333
+      bottom MSE: 59.36296296296296
+      bottom RMSE: 7.7047363980192705
+    Second method : 516 succesed, 142 failed (model)
+      height MAE: 6.188679245283019
+      height MSE: 66.98113207547169
+      height RMSE: 8.184200148791065
+      top MAE: 4.509433962264151
+      top MSE: 31.11320754716981
+      top RMSE: 5.577921436087982
+      bottom MAE: 8.20754716981132
+      bottom MSE: 102.32075471698113
+      bottom RMSE: 10.115372198638127

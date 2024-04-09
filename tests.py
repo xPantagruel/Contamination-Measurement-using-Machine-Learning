@@ -8,11 +8,17 @@ store_failed_images = True
 def test_csv_data(processed_data):
     current_directory = os.path.dirname(os.path.realpath(__file__))
     # folder_path = os.path.join(current_directory, "images")
+    # csv_file = os.path.join(current_directory, "contamination_measurements.csv")
+    
     csv_file = os.path.join(current_directory, "contamination_measurements.csv")
+
     data = pd.read_csv(csv_file)
 
     succesed = 0
     failed = 0
+    # for error measurement
+    errorDict = {'height': [], 'top': [], 'bottom': []}
+
     # Loop through processed data and compare with CSV
     for processed_item in processed_data:
         if processed_item is None:
@@ -33,6 +39,8 @@ def test_csv_data(processed_data):
                 contamination_height_diff = abs(processed_item.ContaminationHeight - csv_values['ContaminationHeight'])
             # contamination_height_diff = np.abs(np.abs(int(processed_item.ContaminationHeight)) - np.abs(int(csv_values['ContaminationHeight'])))
 
+
+
             similarity_threshold = 25
             
             # when the difference is less than the threshold, the test is considered successful 
@@ -47,7 +55,13 @@ def test_csv_data(processed_data):
                 and top_height_diff <= similarity_threshold and 
                 contamination_height_diff <= similarity_threshold
             ):
+                # calculate the ERROR 
                 succesed += 1
+                # FILL DICTIONARY ERROR MEASUREMENT ----------------------------------
+                errorDict['height'].append(bottom_height_diff)
+                errorDict['top'].append(top_height_diff)
+                errorDict['bottom'].append(contamination_height_diff)
+                # END OF FILLING DICT ERROR MEASUREMENT ---------------------------
                 print(Fore.GREEN + f"Values for {image_name} are close to the CSV values." + Style.RESET_ALL)
             else:
                 failed += 1
@@ -60,7 +74,7 @@ def test_csv_data(processed_data):
 
                 if store_failed_images:
                     # Store the image in the folder for failed images
-                    folder_with_images = os.path.join(current_directory, "WholeDataset")
+                    folder_with_images = os.path.join(current_directory, "Data_Storage", "WholeDataset")
                     folder_for_failed_images = os.path.join(current_directory, "FailedImages")
                     image_path = os.path.join(folder_with_images, image_name)  # Assuming image is in this folder
 
@@ -74,5 +88,21 @@ def test_csv_data(processed_data):
                 print(Fore.RED + f"Values for {image_name} are not close to the CSV values. Image copied to failed images folder." + Style.RESET_ALL)
         else:
             print(f"No data found in CSV for {image_name}")
+
+    # CALCULATE THE ERROR MEASUREMENT ----------------------------------
+    mae = {key: np.mean(values) for key, values in errorDict.items()}
+
+    # If you also need Mean Squared Error (MSE)
+    mse = {key: np.mean([v**2 for v in values]) for key, values in errorDict.items()}
+
+    # And Root Mean Squared Error (RMSE)
+    rmse = {key: np.sqrt(np.mean([v**2 for v in values])) for key, values in errorDict.items()}
+    # END OF CALCULATING ERROR MEASUREMENT ---------------------------
+
+    # Print the calculated error measurements
+    for measurement in ['height', 'top', 'bottom']:
+        print(f"{measurement} MAE: {mae[measurement]}")
+        print(f"{measurement} MSE: {mse[measurement]}")
+        print(f"{measurement} RMSE: {rmse[measurement]}")
 
     print(f"Test results: {succesed} succesed, {failed} failed")

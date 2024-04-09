@@ -11,7 +11,7 @@ do_Tests = True
 def process_image(image_path):
     print("Processing image: " + image_path)
     contamination_measurement = ContaminationMeasurementClass()
-    BottomHeight,TopHeight = contamination_measurement.measure_contamination7(image_path)
+    BottomHeight,TopHeight = contamination_measurement.measure_contamination(image_path)
     
     if BottomHeight == None or TopHeight == None:
         print("Error processing image: " + image_path)
@@ -24,9 +24,9 @@ def process_image(image_path):
     return data_instance
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "failed/testing")
+    folder_path = os.path.join(current_directory, "Data_Storage\Images\ForThesis")
 
     image_paths = load_images_from_folder(folder_path)
 
