@@ -121,3 +121,6 @@ PLan:
       bottom MAE: 8.20754716981132
       bottom MSE: 102.32075471698113
       bottom RMSE: 10.115372198638127
+
+    Benchmarking the Robustness of Semantic Segmentation Models: https://openaccess.thecvf.com/content_CVPR_2020/papers/Kamann_Benchmarking_the_Robustness_of_Semantic_Segmentation_Models_CVPR_2020_paper.pdf
+    DeepLabv3-based brain tumor segmentation: https://www.sciencedirect.com/science/article/pii/S1110016823005379#b0160
