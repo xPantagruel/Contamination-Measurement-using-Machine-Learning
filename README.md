@@ -81,20 +81,17 @@ PLan:
 
   CODE : 
     error measurement
-    train the model on more epochs than 25 
     refactor whole model training and verify that it is still training right 
     refactor whole first method
-    find the right threshold value for model by implementing storing error measurements for different threshold values and than the lowest one is the best 
-
+    train augmentated model
+    I can make comparision of models using the ground truth masks and compare tham to measured by me
   WRITE: 
-    implementation first method 
-    implementation second method 
-    write about comparing 2 models that has different dataset at the beggining and that I want the model trained on dataset that has contamination because We rather get false result of contamination than NONE 
+    handle citations
+    implementation second method
+    write about training the model on more than 100 epochs 
     write about choosing right model and verifying the model according to results of f1 score and so on 
-    rewrite first 3 chapters and push it to the supervisor in the Company
     compare methods to each other and say which one will be use and is better
-    write about getting right threshold for model mask
-  
+    compare scharr and canny
   DEADLINES : 
     21.4. POSTER for Excel at fit
     9.5. BC thesis 

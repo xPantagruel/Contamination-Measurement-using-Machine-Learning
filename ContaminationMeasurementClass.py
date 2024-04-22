@@ -15,6 +15,34 @@ class ContaminationMeasurementClass:
 
         thresholded_image = otsu_thresholding(blurred_image)
         scharr_image = self.scharr(thresholded_image)
+        canny_image = canny_edge_detection(thresholded_image, 45, 50, 7, 2)
+        
+        # # create plot next to each other the canny and the scharr edge detection with bigger text also add the original image
+        # fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+
+        # # Display the original image
+        # axs[0].imshow(image, cmap='gray')
+        # axs[0].set_title('Original Image', fontsize=22)
+        # axs[0].axis('off')
+
+        # # Display the image after applying Canny edge detection
+        # axs[1].imshow(canny_image, cmap='gray')
+        # axs[1].set_title('Canny Edge Detection', fontsize=22)
+        # axs[1].axis('off')
+
+        # # Display the image after applying Scharr edge detection
+        # axs[2].imshow(scharr_image, cmap='gray')
+        # axs[2].set_title('Scharr Edge Detection', fontsize=22)
+        # axs[2].axis('off')
+
+        # # Adjust the layout
+        # plt.tight_layout()  # Adjust subplots to fit into figure area.
+
+        # # Optionally, you can manually adjust the spacing with the following line:
+        # # plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, wspace=0.1, hspace=0.2)
+
+        # plt.show()
+
     
         TinBallEdgeLeft = get_mode_height_of_tin_ball_left_side(scharr_image)
         TinBallEdgeRight = get_mode_height_of_tin_ball_right_side(scharr_image)

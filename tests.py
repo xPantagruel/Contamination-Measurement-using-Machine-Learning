@@ -97,6 +97,8 @@ def test_csv_data(processed_data):
 
     # And Root Mean Squared Error (RMSE)
     rmse = {key: np.sqrt(np.mean([v**2 for v in values])) for key, values in errorDict.items()}
+
+    median = {key: np.median(values) for key, values in errorDict.items()}
     # END OF CALCULATING ERROR MEASUREMENT ---------------------------
 
     # Print the calculated error measurements
@@ -104,5 +106,58 @@ def test_csv_data(processed_data):
         print(f"{measurement} MAE: {mae[measurement]}")
         print(f"{measurement} MSE: {mse[measurement]}")
         print(f"{measurement} RMSE: {rmse[measurement]}")
+        print(f"{measurement} Median: {median[measurement]}")
 
     print(f"Test results: {succesed} succesed, {failed} failed")
+    print ("Error measurement: ", errorDict)
+    import matplotlib.pyplot as plt
+
+    def plot_error_metrics(errorDict):
+        # Extract the error metrics
+        mae = {key: np.mean(values) for key, values in errorDict.items()}
+        mse = {key: np.mean([v**2 for v in values]) for key, values in errorDict.items()}
+        rmse = {key: np.sqrt(np.mean([v**2 for v in values])) for key, values in errorDict.items()}
+
+        # Prepare data for plotting
+        labels = list(mae.keys())
+        mae_values = list(mae.values())
+        mse_values = list(mse.values())
+        rmse_values = list(rmse.values())
+        
+        x = np.arange(len(labels))  # the label locations
+        width = 0.25  # the width of the bars
+
+        fig, ax = plt.subplots()
+        rects1 = ax.bar(x - width, mae_values, width, label='MAE')
+        rects2 = ax.bar(x, mse_values, width, label='MSE')
+        rects3 = ax.bar(x + width, rmse_values, width, label='RMSE')
+
+        # Add some text for labels, title, and custom x-axis tick labels, etc.
+        ax.set_xlabel('Measurement Type')
+        ax.set_ylabel('Error Values')
+        ax.set_title('Error Metrics Comparison by Measurement Type')
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels)
+        ax.legend()
+
+        # Attach a text label above each bar in *rects*, displaying its height.
+        def autolabel(rects):
+            """Attach a text label above each bar in *rects*, displaying its height."""
+            for rect in rects:
+                height = rect.get_height()
+                ax.annotate('{}'.format(round(height, 2)),
+                            xy=(rect.get_x() + rect.get_width() / 2, height),
+                            xytext=(0, 3),  # 3 points vertical offset
+                            textcoords="offset points",
+                            ha='center', va='bottom')
+
+        autolabel(rects1)
+        autolabel(rects2)
+        autolabel(rects3)
+
+        fig.tight_layout()
+        plt.savefig('error_metrics_comparison.png')  # Save the figure
+        plt.show()
+
+    # Assuming errorDict is filled from your error analysis, call the plotting function
+    plot_error_metrics(errorDict)
