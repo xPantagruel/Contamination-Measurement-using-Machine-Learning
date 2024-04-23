@@ -86,20 +86,23 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
         # show start and end of selected columns
         plt.axvline(x=start_row, color='r', linestyle=':', linewidth=1.5)
         plt.axvline(x=end_row, color='r', linestyle=':', linewidth=1.5)
-        plt.title('Original Image')
+        plt.title('ROI', fontsize=22)
 
         # Plot the first derivative of the line profile
         plt.subplot(1, 2, 2)
         plt.plot(range(height), line_first_gradient)
-        plt.scatter(maxs, [line_first_gradient[i] for i in maxs], color='r', label='Max')
-        plt.scatter(mins, [line_first_gradient[i] for i in mins], color='g', label='Min')
+        # plt.scatter(maxs, [line_first_gradient[i] for i in maxs], color='r', label='Max')
+        # plt.scatter(mins, [line_first_gradient[i] for i in mins], color='g', label='Min')
         if bottom_of_contamination is not None:
             plt.scatter(bottom_of_contamination, line_first_gradient[bottom_of_contamination], color='b', label='Bottom of Contamination')
         if top_of_contamination is not None:
             plt.scatter(top_of_contamination, line_first_gradient[top_of_contamination], color='m', label='Top of Contamination')
-        plt.xlabel('Y Axis (Height of Image)')
-        plt.ylabel('First Derivative')
-        plt.title('First Derivative of Vertical Line Profile')
+
+        if starting_point is not None:
+            plt.scatter(starting_point, line_first_gradient[starting_point], color='y', label='Starting Point')
+        plt.xlabel('Y Axis (Height of Image)', fontsize=18)
+        plt.ylabel('First Derivative', fontsize=18)
+        plt.title('First Derivative of Vertical Line Profile', fontsize=22)
         plt.legend()
 
         # # Plot the line values
@@ -171,15 +174,26 @@ def get_starting_point_TEST(image, column_start=200, showDebug=False, TinBallEdg
     
     # show the graph with all maximums and minimums
     if showDebug :
-        plt.plot(vertical_profile, color='b')
-        # show starting point
-        plt.scatter(starting_point, vertical_profile[starting_point], color='g', label='Starting Point')
-        # plt.scatter(max_peaks, [vertical_profile[i] for i in max_peaks], color='r', label='Max')
-        # plt.scatter(min_peaks, [vertical_profile[i] for i in min_peaks], color='b', label='Min')
-        plt.xlabel('Y Axis (Height of Image)')
-        plt.ylabel('Pixel Value')
-        plt.title('Vertical Profile')
-        plt.legend()
+        fig, axs = plt.subplots(1, 2, figsize=(15, 6))
+
+        # Plot original image
+        axs[0].imshow(image, cmap='gray')
+        axs[0].axvline(x=column_start, color='r', linestyle='--', label='Column Start')
+        axs[0].axhline(y=starting_point, color='g', linestyle='--', label='Starting Point')
+        axs[0].set_xlabel('X Axis', fontsize=18)
+        axs[0].set_ylabel('Y Axis', fontsize=18)
+        axs[0].set_title('Original Image', fontsize=18)
+        axs[0].legend()
+
+        # Plot vertical profile
+        axs[1].plot(vertical_profile, color='b')
+        axs[1].scatter(starting_point, vertical_profile[starting_point], color='g', label='Starting Point')
+        axs[1].set_xlabel('Y Axis (Height of Image)', fontsize=18)
+        axs[1].set_ylabel('Pixel Value', fontsize=18)
+        axs[1].set_title('Vertical Profile', fontsize=18)
+        axs[1].legend()
+
+        plt.tight_layout()
         plt.show()
 
     return starting_point
@@ -1114,84 +1128,84 @@ def load_images_from_folder(folder_path):
 #     pass
 
 
-# def gaussian_smoothing(image, kernel_size=5, sigma=1.4):
-#     return cv2.GaussianBlur(image, (kernel_size, kernel_size), sigma)
+def gaussian_smoothing(image, kernel_size=5, sigma=1.4):
+    return cv2.GaussianBlur(image, (kernel_size, kernel_size), sigma)
 
 
-# def gradient_magnitude(dx, dy):
-#     return np.sqrt(dx ** 2 + dy ** 2)
+def gradient_magnitude(dx, dy):
+    return np.sqrt(dx ** 2 + dy ** 2)
 
 
-# def gradient_x(image):
-#     return cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
+def gradient_x(image):
+    return cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
 
 
-# def gradient_y(image):
-#     return cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
+def gradient_y(image):
+    return cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
 
 
-# def non_maximum_suppression(magnitude, gradient_x, gradient_y):
-#     height, width = magnitude.shape
-#     suppressed = np.zeros((height, width), dtype=np.uint8)
-#     angle = np.arctan2(gradient_y, gradient_x) * 180 / np.pi
-#     angle[angle < 0] += 180
+def non_maximum_suppression(magnitude, gradient_x, gradient_y):
+    height, width = magnitude.shape
+    suppressed = np.zeros((height, width), dtype=np.uint8)
+    angle = np.arctan2(gradient_y, gradient_x) * 180 / np.pi
+    angle[angle < 0] += 180
 
-#     for i in range(1, height - 1):
-#         for j in range(1, width - 1):
-#             q1, q2 = 255, 255
-#             if (0 <= angle[i, j] < 22.5) or (157.5 <= angle[i, j] <= 180):
-#                 q1 = magnitude[i, j+1]
-#                 q2 = magnitude[i, j-1]
-#             elif 22.5 <= angle[i, j] < 67.5:
-#                 q1 = magnitude[i+1, j-1]
-#                 q2 = magnitude[i-1, j+1]
-#             elif 67.5 <= angle[i, j] < 112.5:
-#                 q1 = magnitude[i+1, j]
-#                 q2 = magnitude[i-1, j]
-#             elif 112.5 <= angle[i, j] < 157.5:
-#                 q1 = magnitude[i-1, j-1]
-#                 q2 = magnitude[i+1, j+1]
+    for i in range(1, height - 1):
+        for j in range(1, width - 1):
+            q1, q2 = 255, 255
+            if (0 <= angle[i, j] < 22.5) or (157.5 <= angle[i, j] <= 180):
+                q1 = magnitude[i, j+1]
+                q2 = magnitude[i, j-1]
+            elif 22.5 <= angle[i, j] < 67.5:
+                q1 = magnitude[i+1, j-1]
+                q2 = magnitude[i-1, j+1]
+            elif 67.5 <= angle[i, j] < 112.5:
+                q1 = magnitude[i+1, j]
+                q2 = magnitude[i-1, j]
+            elif 112.5 <= angle[i, j] < 157.5:
+                q1 = magnitude[i-1, j-1]
+                q2 = magnitude[i+1, j+1]
 
-#             if magnitude[i, j] >= q1 and magnitude[i, j] >= q2:
-#                 suppressed[i, j] = magnitude[i, j]
+            if magnitude[i, j] >= q1 and magnitude[i, j] >= q2:
+                suppressed[i, j] = magnitude[i, j]
 
-#     return suppressed
-
-
-# def hysteresis_threshold(image, low_threshold, high_threshold):
-#     strong_edges = (image >= high_threshold)
-#     weak_edges = (image >= low_threshold) & (image < high_threshold)
-#     return strong_edges, weak_edges
+    return suppressed
 
 
-# def edge_tracking_by_hysteresis(strong_edges, weak_edges):
-#     height, width = strong_edges.shape
-#     edge_image = np.zeros((height, width), dtype=np.uint8)
-
-#     for i in range(1, height - 1):
-#         for j in range(1, width - 1):
-#             if strong_edges[i, j]:
-#                 edge_image[i, j] = 255
-#             elif weak_edges[i, j]:
-#                 neighbors = edge_image[i-1:i+2, j-1:j+2]
-#                 if np.any(neighbors == 255):
-#                     edge_image[i, j] = 255
-
-#     return edge_image
+def hysteresis_threshold(image, low_threshold, high_threshold):
+    strong_edges = (image >= high_threshold)
+    weak_edges = (image >= low_threshold) & (image < high_threshold)
+    return strong_edges, weak_edges
 
 
-# def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, sigma=1.4):
-#     smoothed_image = gaussian_smoothing(image, kernel_size, sigma)
-#     gradient_x_image = gradient_x(smoothed_image)
-#     gradient_y_image = gradient_y(smoothed_image)
-#     gradient_magnitude_image = gradient_magnitude(
-#         gradient_x_image, gradient_y_image)
-#     suppressed_image = non_maximum_suppression(
-#         gradient_magnitude_image, gradient_x_image, gradient_y_image)
-#     strong_edges, weak_edges = hysteresis_threshold(
-#         suppressed_image, low_threshold, high_threshold)
-#     edge_image = edge_tracking_by_hysteresis(strong_edges, weak_edges)
-#     return edge_image
+def edge_tracking_by_hysteresis(strong_edges, weak_edges):
+    height, width = strong_edges.shape
+    edge_image = np.zeros((height, width), dtype=np.uint8)
+
+    for i in range(1, height - 1):
+        for j in range(1, width - 1):
+            if strong_edges[i, j]:
+                edge_image[i, j] = 255
+            elif weak_edges[i, j]:
+                neighbors = edge_image[i-1:i+2, j-1:j+2]
+                if np.any(neighbors == 255):
+                    edge_image[i, j] = 255
+
+    return edge_image
+
+
+def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, sigma=1.4):
+    smoothed_image = gaussian_smoothing(image, kernel_size, sigma)
+    gradient_x_image = gradient_x(smoothed_image)
+    gradient_y_image = gradient_y(smoothed_image)
+    gradient_magnitude_image = gradient_magnitude(
+        gradient_x_image, gradient_y_image)
+    suppressed_image = non_maximum_suppression(
+        gradient_magnitude_image, gradient_x_image, gradient_y_image)
+    strong_edges, weak_edges = hysteresis_threshold(
+        suppressed_image, low_threshold, high_threshold)
+    edge_image = edge_tracking_by_hysteresis(strong_edges, weak_edges)
+    return edge_image
 
 
 
