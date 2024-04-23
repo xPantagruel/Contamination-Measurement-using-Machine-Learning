@@ -2,10 +2,12 @@ from matplotlib.pyplot import imshow
 from image_processing import *
 from helper_class import *
 
+Store_Images_with_detected_lines = True
+plot = False
+showCannyVsScharr = False
 class ContaminationMeasurementClass:
     def measure_contamination(self, image_path):
         image = load_image(image_path)
-        # preprocessed_image = self.cutt_off_edges(image)
         OpenImage = apply_opening(image)
         CloseImage = apply_closing(OpenImage)
 
@@ -17,32 +19,29 @@ class ContaminationMeasurementClass:
         scharr_image = self.scharr(thresholded_image)
         canny_image = canny_edge_detection(thresholded_image, 45, 50, 7, 2)
         
-        # # create plot next to each other the canny and the scharr edge detection with bigger text also add the original image
-        # fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+        if showCannyVsScharr:
+            # create plot next to each other the canny and the scharr edge detection with bigger text also add the original image
+            fig, axs = plt.subplots(1, 3, figsize=(15, 5))
 
-        # # Display the original image
-        # axs[0].imshow(image, cmap='gray')
-        # axs[0].set_title('Original Image', fontsize=22)
-        # axs[0].axis('off')
+            # Display the original image
+            axs[0].imshow(image, cmap='gray')
+            axs[0].set_title('Original Image', fontsize=22)
+            axs[0].axis('off')
 
-        # # Display the image after applying Canny edge detection
-        # axs[1].imshow(canny_image, cmap='gray')
-        # axs[1].set_title('Canny Edge Detection', fontsize=22)
-        # axs[1].axis('off')
+            # Display the image after applying Canny edge detection
+            axs[1].imshow(canny_image, cmap='gray')
+            axs[1].set_title('Canny Edge Detection', fontsize=22)
+            axs[1].axis('off')
 
-        # # Display the image after applying Scharr edge detection
-        # axs[2].imshow(scharr_image, cmap='gray')
-        # axs[2].set_title('Scharr Edge Detection', fontsize=22)
-        # axs[2].axis('off')
+            # Display the image after applying Scharr edge detection
+            axs[2].imshow(scharr_image, cmap='gray')
+            axs[2].set_title('Scharr Edge Detection', fontsize=22)
+            axs[2].axis('off')
 
-        # # Adjust the layout
-        # plt.tight_layout()  # Adjust subplots to fit into figure area.
+            # Adjust the layout
+            plt.tight_layout()
 
-        # # Optionally, you can manually adjust the spacing with the following line:
-        # # plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, wspace=0.1, hspace=0.2)
-
-        # plt.show()
-
+            plt.show()
     
         TinBallEdgeLeft = get_mode_height_of_tin_ball_left_side(scharr_image)
         TinBallEdgeRight = get_mode_height_of_tin_ball_right_side(scharr_image)
@@ -68,17 +67,14 @@ class ContaminationMeasurementClass:
                 os.makedirs('zero_contamination')
             # save the image with the name image_name + test
             cv2.imwrite('zero_contamination/' + os.path.basename(image_path) + '.png', image )
-            
             return 0,0
         
         roi = get_Roi(blurred_image, LeftYContamination, RightYContamination)
         starting_point = get_starting_point_TEST(roi, showDebug=False, TinBallEdge = MaxY)
-        # starting_point = get_starting_point(roi, showDebug=True, TinBallEdge = MaxY)
         print("starting_point: ", starting_point)
 
-        # find_contamination_height(roi, starting_point) 
-        maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point,shouwDebug=True)
-        Store_Images_with_detected_lines = True
+        maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point,shouwDebug=False)
+        
         if Store_Images_with_detected_lines:
             # store the image with the detected lines in the same directory with the name of file test
             # create directory if it does not exist
@@ -91,15 +87,15 @@ class ContaminationMeasurementClass:
             cv2.line(image_to_save, (0, bottom_of_contamination), (image_to_save.shape[1], bottom_of_contamination), (0, 0, 255), 2)
 
             cv2.imwrite('test/' + os.path.basename(image_path) + 'test' + '.png', image_to_save )
-    
-        # plot_different_x_positions_with_graph(open)   
-        # # Visualization
-        # images_to_visualize = [image,
-        #                        CloseImage, thresholded_image, scharr_image,roi,scharr_roi]
-        # titles = ["Original Image",
-        #           "CloseImage", "Thresholded Image", "Scharr Edge Detection","ROI","Scharr ROI"]
 
-        # self.visualize(images_to_visualize, titles)
+        # Visualization
+        if plot:
+            images_to_visualize = [image,
+                                CloseImage, thresholded_image, scharr_image,roi,scharr_image]
+            titles = ["Original Image",
+                    "CloseImage", "Thresholded Image", "Scharr Edge Detection","ROI","Scharr ROI"]
+
+            self.visualize(images_to_visualize, titles)
         return top_of_contamination, bottom_of_contamination
 
     def showHistogram(self, image_path):

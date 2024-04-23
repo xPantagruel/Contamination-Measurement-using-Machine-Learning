@@ -3,13 +3,10 @@ import pandas as pd
 from colorama import Fore, Style  # Import colorama modules for text coloring
 import shutil  # Import shutil for file operations
 import numpy as np
-store_failed_images = True
+store_failed_images = False
 
 def test_csv_data(processed_data):
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    # folder_path = os.path.join(current_directory, "images")
-    # csv_file = os.path.join(current_directory, "contamination_measurements.csv")
-    
     csv_file = os.path.join(current_directory, "contamination_measurements.csv")
 
     data = pd.read_csv(csv_file)
@@ -37,9 +34,6 @@ def test_csv_data(processed_data):
                 contamination_height_diff = abs(csv_values['ContaminationHeight'] + processed_item.ContaminationHeight)
             else:
                 contamination_height_diff = abs(processed_item.ContaminationHeight - csv_values['ContaminationHeight'])
-            # contamination_height_diff = np.abs(np.abs(int(processed_item.ContaminationHeight)) - np.abs(int(csv_values['ContaminationHeight'])))
-
-
 
             similarity_threshold = 25
             
