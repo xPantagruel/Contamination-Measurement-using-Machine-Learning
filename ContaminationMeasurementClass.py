@@ -2,9 +2,10 @@ from matplotlib.pyplot import imshow
 from image_processing import *
 from helper_class import *
 
-Store_Images_with_detected_lines = True
+Store_Images_with_detected_lines = False
 plot = False
 showCannyVsScharr = False
+DEBUG = False
 class ContaminationMeasurementClass:
     def measure_contamination(self, image_path):
         image = load_image(image_path)
@@ -17,9 +18,10 @@ class ContaminationMeasurementClass:
 
         thresholded_image = otsu_thresholding(blurred_image)
         scharr_image = self.scharr(thresholded_image)
-        canny_image = canny_edge_detection(thresholded_image, 45, 50, 7, 2)
         
         if showCannyVsScharr:
+            canny_image = canny_edge_detection(thresholded_image, 45, 50, 7, 2)
+
             # create plot next to each other the canny and the scharr edge detection with bigger text also add the original image
             fig, axs = plt.subplots(1, 3, figsize=(15, 5))
 
@@ -51,13 +53,15 @@ class ContaminationMeasurementClass:
             MaxY = TinBallEdgeLeft
         else:
             MaxY = TinBallEdgeRight
-        print("MaxY: ", MaxY)
+        if DEBUG:
+            print("MaxY: ", MaxY)
         
         LeftYContamination, RightYContamination, middleOfContamination = get_contamination_range(
             scharr_image, MaxY)
         
-        print("LeftYContamination: ", LeftYContamination)
-        print("RightYContamination: ", RightYContamination)
+        if DEBUG:
+            print("LeftYContamination: ", LeftYContamination)
+            print("RightYContamination: ", RightYContamination)
         
         # zero contamination check 
         if LeftYContamination == -1 or RightYContamination == -1:
@@ -70,10 +74,12 @@ class ContaminationMeasurementClass:
             return 0,0
         
         roi = get_Roi(blurred_image, LeftYContamination, RightYContamination)
-        starting_point = get_starting_point_TEST(roi, showDebug=False, TinBallEdge = MaxY)
-        print("starting_point: ", starting_point)
+        starting_point = get_starting_point_TEST(roi, showDebug=True, TinBallEdge = MaxY)
 
-        maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point,shouwDebug=False)
+        if DEBUG:
+            print("starting_point: ", starting_point)
+
+        maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point,shouwDebug=True)
         
         if Store_Images_with_detected_lines:
             # store the image with the detected lines in the same directory with the name of file test

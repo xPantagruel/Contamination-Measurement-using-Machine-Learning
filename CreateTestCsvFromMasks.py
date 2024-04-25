@@ -3,7 +3,7 @@ import numpy as np
 import os
 import csv
 
-def measure_red_width(image_path):
+def measure_width(image_path):
     # Read the image
     img = cv2.imread(image_path)
     
@@ -91,10 +91,10 @@ def measure_red_height(image_path, column):
 # Path to the folder containing images
 # in actual folder will be folder maskks with images
 current_directory = os.path.dirname(os.path.realpath(__file__))
-folder_path = os.path.join(current_directory, "masks")
+folder_path = os.path.join(current_directory, "Data_Storage/maskResizedUniq/Unique_Images_Masks")
 
 # CSV file path
-csv_file_path = os.path.join(current_directory, "contamination_measurements.csv")
+csv_file_path = os.path.join(current_directory, "contamination_measurements_unique.csv")
 
 # Create CSV file with columns: ImageName, BottomHeightY, TopHeightY, ContaminationHeight
 with open(csv_file_path, 'w', newline='') as csvfile:
@@ -107,7 +107,7 @@ with open(csv_file_path, 'w', newline='') as csvfile:
     for filename in os.listdir(folder_path):
         if filename.endswith(".jpg") or filename.endswith(".png"):
             image_path = os.path.join(folder_path, filename)
-            red_width, most_left, most_right = measure_red_width(image_path)
+            red_width, most_left, most_right = measure_width(image_path)
             if red_width is not None:
                 starting_column = most_left[0] + red_width // 2
                 height,bottom_height_y,top_height_y = measure_red_height(image_path, starting_column)

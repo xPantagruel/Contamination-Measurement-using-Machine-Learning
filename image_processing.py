@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from statistics import mode
 from scipy.signal import find_peaks
-
+DEBUG = False
 
 def find_contamination_bottom_and_top(image, starting_point, position=0, num_rows=50, shouwDebug=False):
     # Get the dimensions of the image
@@ -264,13 +264,15 @@ def get_contamination_range(image, maxY):
 
     # Find the start and end positions of contamination while moving to the left
     left_end = findEdgeToLeft(left_x, center_x + 1)
-
-    print("Start of contamination:", left_end)
-    print("End of contamination:", right_end)
-
-    print("width:", right_end - left_end)
     middle = ((right_end - left_end) // 2) + left_end
-    print("middle:", middle)
+
+    if DEBUG:
+        print("Start of contamination:", left_end)
+        print("End of contamination:", right_end)
+
+        print("width:", right_end - left_end)
+        print("middle:", middle)
+
     return left_end, right_end, middle
 
 def get_mode_height_of_tin_ball_left_side(image):
