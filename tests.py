@@ -48,7 +48,9 @@ def test_csv_data(processed_data):
                 # calculate the ERROR 
                 succesed += 1
                 # FILL DICTIONARY ERROR MEASUREMENT ----------------------------------
-                errorDict['height'].append(bottom_height_diff)
+                if processed_item.ContaminationHeight == 0:
+                    continue
+                errorDict['height'].append(contamination_height_diff)
                 errorDict['top'].append(top_height_diff)
                 errorDict['bottom'].append(bottom_height_diff)
                 # END OF FILLING DICT ERROR MEASUREMENT ---------------------------
