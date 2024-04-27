@@ -25,6 +25,9 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
     # Extract pixel values from the selected rows
     line_values = np.mean(image[:, start_row:end_row + 1], axis=1)
 
+    # use gausian window to smooth the line values
+    line_values = np.convolve(line_values, np.ones(5) / 5, mode='same')
+
     # Calculate the first derivative of the line values
     line_first_gradient = np.gradient(line_values)
     line_first_derivative = np.diff(line_values)
@@ -121,9 +124,15 @@ def apply_median_blur(image, kernel_size=5):
     blurred_image = cv2.medianBlur(image, kernel_size)
     return blurred_image
 
-def get_starting_point_TEST(image, column_start=200, showDebug=False, TinBallEdge=0):
-    # Compute the vertical profile by averaging pixel values along the horizontal axis in middle only 50 pixels in each direction 
+def get_starting_point_TEST(image, showDebug=False, TinBallEdge=0):
+    # Compute the vertical profile by averaging pixel values along the horizontal axis in middle
+    column_start = image.shape[1] // 2
+
+    if column_start + 100 > image.shape[1] or column_start - 100 < 0:
+        return -1
+
     vertical_profile = np.mean(image[:, column_start - 100:column_start + 100], axis=1)
+    
     starting_point = -1
     
     # Find all local maximas and minimas 
@@ -418,7 +427,14 @@ def otsu_thresholding(image):
     return thresholded
 
 def load_image(image_path):
-    return cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    # resize image to 1024x768
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    
+    # check if dimensions are 1024x768
+    if image.shape[0] != 768 or image.shape[1] != 1024:
+        image = cv2.resize(image, (1024, 768))
+
+    return image
 
 def load_images_from_folder(folder_path):
     image_paths = []

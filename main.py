@@ -5,11 +5,14 @@ import multiprocessing
 from DataClass import ProcessedData 
 from tests import test_csv_data
 from PIL import Image
+import csv
 
-use_multiprocessing = False
+use_multiprocessing = True
 do_Tests = True
 DEBUG = False
-
+# foldername,mae top,mse top ,rmse top ,median top,mae bottom,mse bottom,rmse bottom,median bottom,mae height,mse height,rmse height,median height
+Error_Measurements_Result = {'foldername': [],'succesed':0,'failed':0,'Zero_Contamination_Badly_Measured':0, 'mae top': [], 'mse top': [], 'rmse top': [], 'median top': [], 'mae bottom': [], 'mse bottom': [], 'rmse bottom': [], 'median bottom': [], 'mae height': [], 'mse height': [], 'rmse height': [], 'median height': []}
+Error_Measurements_Results = []
 def process_image(image_path):
     if DEBUG:
         print("Processing image: " + image_path)
@@ -30,7 +33,6 @@ def process_image(image_path):
 
         return data_instance
     except Exception as e:
-        print(f"Error processing image {image_path}: {e}")
         return None
     
 def TestSpecificFolder(folder_path):
@@ -49,7 +51,12 @@ def TestSpecificFolder(folder_path):
                 Results.append(data_instance)
 
     if do_Tests:
-        test_csv_data(Results)
+
+        mae, mse, rmse, median, succesed, failed, Zero_Contamination_Badly_Measured = test_csv_data(Results)
+        base_name = os.path.basename(folder_path)
+        Error_Measurements_Result  = {'foldername': base_name,'succesed': succesed,'failed': failed,'Zero_Contamination_Badly_Measured':Zero_Contamination_Badly_Measured,'mae top': mae['top'], 'mse top': mse['top'], 'rmse top': rmse['top'], 'median top': median['top'], 'mae bottom': mae['bottom'], 'mse bottom': mse['bottom'], 'rmse bottom': rmse['bottom'], 'median bottom': median['bottom'], 'mae height': mae['height'], 'mse height': mse['height'], 'rmse height': rmse['height'], 'median height': median['height']}
+        print(Error_Measurements_Result)
+        Error_Measurements_Results.append(Error_Measurements_Result)
 
 def TestErrorMeasurementAccrossAllDatasets(folder_paths):
     for folder_path in folder_paths:
@@ -57,19 +64,30 @@ def TestErrorMeasurementAccrossAllDatasets(folder_paths):
         folder_path_name = os.path.basename(folder_path)
         print(f"Testing folder: {folder_path_name}")
         TestSpecificFolder(folder_path)
+        print ("---------------------------------------------------------------------------")
+
+    # store in the result error csv Error_Measurements_Results
+    with open('Error_Measurements_Results.csv', mode='w') as file:
+        writer = csv.DictWriter(file, fieldnames=Error_Measurements_Result.keys())
+        writer.writeheader()
+        for data in Error_Measurements_Results:
+            writer.writerow(data)
 
 if __name__ == "__main__":
     current_directory = os.path.dirname(os.path.realpath(__file__))
     folder_path = os.path.join(current_directory, "Data_Storage/Error_Measurements_Datasets/")
-    folder_path_specific = os.path.join(current_directory, "Data_Storage/Images/fail")
+    
+    # folder_path_specific = os.path.join(current_directory, r"Data_Storage\others\testsFailed")
+    # folder_path = os.path.join(current_directory, "Data_Storage/WholeDataset")
+    # folder_path = os.path.join(current_directory, "Data_Storage/Error_Measurements_Datasets/")
 
-    TestSpecificFolder(folder_path_specific)
+    # TestSpecificFolder(folder_path_specific)
 
-    # folder_paths = []
-    # # in folder Error_Measurements_Datasets there are folders with images
-    # for folder in os.listdir(folder_path):
-    #     folder_paths.append(os.path.join(folder_path, folder))
+    folder_paths = []
+    # in folder Error_Measurements_Datasets there are folders with images
+    for folder in os.listdir(folder_path):
+        folder_paths.append(os.path.join(folder_path, folder))
 
-    # TestErrorMeasurementAccrossAllDatasets(folder_paths)
+    TestErrorMeasurementAccrossAllDatasets(folder_paths)
 
     print("All processes have finished.")

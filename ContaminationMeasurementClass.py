@@ -72,14 +72,20 @@ class ContaminationMeasurementClass:
             # save the image with the name image_name + test
             cv2.imwrite('zero_contamination/' + os.path.basename(image_path) + '.png', image )
             return 0,0
+
+        if RightYContamination - LeftYContamination < 200:
+            # i need to edit these values sot between them is 400 pixels
+            middle_between_edges = ((RightYContamination + LeftYContamination) // 2) + LeftYContamination
+            LeftYContamination = middle_between_edges - 200
+            RightYContamination = middle_between_edges + 200
         
         roi = get_Roi(blurred_image, LeftYContamination, RightYContamination)
-        starting_point = get_starting_point_TEST(roi, showDebug=True, TinBallEdge = MaxY)
+        starting_point = get_starting_point_TEST(roi, showDebug=False, TinBallEdge = MaxY)
 
         if DEBUG:
             print("starting_point: ", starting_point)
 
-        maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point,shouwDebug=True)
+        maxs, mins, bottom_of_contamination, top_of_contamination = find_contamination_bottom_and_top(roi, starting_point,shouwDebug=False)
         
         if Store_Images_with_detected_lines:
             # store the image with the detected lines in the same directory with the name of file test

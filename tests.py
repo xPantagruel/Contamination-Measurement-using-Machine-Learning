@@ -5,7 +5,7 @@ import shutil  # Import shutil for file operations
 import numpy as np
 import matplotlib.pyplot as plt
 
-store_failed_images = True
+store_failed_images = False
 DEBUG = False
 def test_csv_data(processed_data):
     current_directory = os.path.dirname(os.path.realpath(__file__))
@@ -38,14 +38,7 @@ def test_csv_data(processed_data):
             else:
                 contamination_height_diff = abs(processed_item.ContaminationHeight - csv_values['ContaminationHeight'])
 
-            similarity_threshold = 25
-            
-            # when the difference is less than the threshold, the test is considered successful 
-            # this is because some contamination is really low so it is hard to measure it correctly and to say there is no contamination is correct
-            # if (processed_item.BottomHeightY == 0 or processed_item.TopHeightY == 0 ) and csv_values['ContaminationHeight'] < 40:
-            #     print ("There is none or low contamination in the image. Skipping...")
-            #     succesed += 1
-            #     continue
+            similarity_threshold = 25  # Threshold for similarity between processed and CSV values
             
             if (
                 bottom_height_diff <= similarity_threshold
@@ -64,8 +57,8 @@ def test_csv_data(processed_data):
             else:
                 if csv_values['ContaminationHeight'] == 0 or processed_item.ContaminationHeight == 0:
                     BaddlyValuatedNonContaminated['height'].append(processed_item.ContaminationHeight)
-                    succesed += 1
                     Zero_Contamination_Badly_Measured += 1
+                    continue
                 else:
                     failed += 1
                 if DEBUG:
@@ -79,7 +72,7 @@ def test_csv_data(processed_data):
 
                 if store_failed_images:
                     # Store the image in the folder for failed images
-                    folder_with_images = os.path.join(current_directory, "Data_Storage", "WholeDataset")
+                    folder_with_images = os.path.join(current_directory, "Data_Storage", "others", "WholeDataset")
                     folder_for_failed_images = os.path.join(current_directory, "FailedImages")
                     image_path = os.path.join(folder_with_images, image_name)  # Assuming image is in this folder
 
@@ -92,28 +85,7 @@ def test_csv_data(processed_data):
         else:
             print(f"No data found in CSV for {image_name}")
 
-    # CALCULATE THE ERROR MEASUREMENT ----------------------------------
-    # mae = {key: np.mean(values) for key, values in errorDict.items()}
-
-    # # If you also need Mean Squared Error (MSE)
-    # mse = {key: np.mean([v**2 for v in values]) for key, values in errorDict.items()}
-
-    # # And Root Mean Squared Error (RMSE)
-    # rmse = {key: np.sqrt(np.mean([v**2 for v in values])) for key, values in errorDict.items()}
-
-    # median = {key: np.median(values) for key, values in errorDict.items()}
-    # END OF CALCULATING ERROR MEASUREMENT ---------------------------
-
-    # # Print the calculated error measurements
-    # for measurement in ['height', 'top', 'bottom']:
-    #     print(f"{measurement} MAE: {mae[measurement]}")
-    #     print(f"{measurement} MSE: {mse[measurement]}")
-    #     print(f"{measurement} RMSE: {rmse[measurement]}")
-    #     print(f"{measurement} Median: {median[measurement]}")
-
     print(f"Test results: {succesed} succesed, {failed} failed, {Zero_Contamination_Badly_Measured} zero contamination badly measured.")
-    # print ("Error measurement: ", errorDict)
-    # print ("Baddly Valuated Non Contaminated: ", BaddlyValuatedNonContaminated)
 
     def plot_error_metrics(errorDict):
         # Extract the error metrics
@@ -171,6 +143,22 @@ def test_csv_data(processed_data):
             
     print ("Number of Badly Valuated Non Contaminated images that are not zero: ", count,"out of ", len(BaddlyValuatedNonContaminated['height']))
 
-    # Assuming errorDict is filled from your error analysis, call the plotting function
-    plot_error_metrics(errorDict)
+    # plot_error_metrics(errorDict)
+
+    # CALCULATE THE ERROR MEASUREMENT ----------------------------------
+    try :
+        mae = {key: np.mean(values) for key, values in errorDict.items()}
+
+        # If you also need Mean Squared Error (MSE)
+        mse = {key: np.mean([v**2 for v in values]) for key, values in errorDict.items()}
+
+        # And Root Mean Squared Error (RMSE)
+        rmse = {key: np.sqrt(np.mean([v**2 for v in values])) for key, values in errorDict.items()}
+        
+        median = {key: np.median(values) for key, values in errorDict.items()}
+    except:
+        print ("Error in calculating error measurement.")
+    # END OF CALCULATING ERROR MEASUREMENT ---------------------------
+
+    return mae, mse, rmse, median, succesed, failed, Zero_Contamination_Badly_Measured
 
