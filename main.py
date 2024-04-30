@@ -74,20 +74,20 @@ def TestErrorMeasurementAccrossAllDatasets(folder_paths):
             writer.writerow(data)
 
 if __name__ == "__main__":
+    nano = True
+
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "Data_Storage/Error_Measurements_Datasets/")
-    
-    # folder_path_specific = os.path.join(current_directory, r"Data_Storage\others\testsFailed")
-    # folder_path = os.path.join(current_directory, "Data_Storage/WholeDataset")
-    # folder_path = os.path.join(current_directory, "Data_Storage/Error_Measurements_Datasets/")
+    if nano:
+        folder_path = os.path.join(current_directory, r"Data_Storage\BeforeResized_Datasets\Uniq_Images")
+        # folder_path = os.path.join(current_directory, r"Data_Storage\BeforeResized_Datasets\ImagesBeforeResize")
+        TestSpecificFolder(folder_path)
+    else:
+        folder_path = os.path.join(current_directory, "Data_Storage/Error_Measurements_Datasets/")
+        folder_paths = []
+        # in folder Error_Measurements_Datasets there are folders with images
+        for folder in os.listdir(folder_path):
+            folder_paths.append(os.path.join(folder_path, folder))
 
-    # TestSpecificFolder(folder_path_specific)
-
-    folder_paths = []
-    # in folder Error_Measurements_Datasets there are folders with images
-    for folder in os.listdir(folder_path):
-        folder_paths.append(os.path.join(folder_path, folder))
-
-    TestErrorMeasurementAccrossAllDatasets(folder_paths)
+        TestErrorMeasurementAccrossAllDatasets(folder_paths)
 
     print("All processes have finished.")

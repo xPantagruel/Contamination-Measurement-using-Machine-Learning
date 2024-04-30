@@ -6,10 +6,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 store_failed_images = False
+nanoscale_mode = True
 DEBUG = False
 def test_csv_data(processed_data):
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    csv_file = os.path.join(current_directory, "contamination_measurements.csv")
+    if nanoscale_mode:
+        csv_file = os.path.join(current_directory, "contamination_measurements_before_resized.csv")
+    else:
+        csv_file = os.path.join(current_directory, "contamination_measurements.csv")
 
     data = pd.read_csv(csv_file)
 
@@ -24,8 +28,14 @@ def test_csv_data(processed_data):
         if processed_item is None:
             continue
         image_name = processed_item.ImageName
+        
+        if nanoscale_mode:
+            # remove any type of extension
+            image_name = os.path.splitext(image_name)[0]
+        else:
         # change the image end from .png to .jpg
-        image_name = image_name.replace(".jpg",".png")
+            image_name = image_name.replace(".jpg",".png")
+
         csv_row = data[data['ImageName'] == image_name]
 
         if not csv_row.empty:
@@ -50,6 +60,43 @@ def test_csv_data(processed_data):
                 # FILL DICTIONARY ERROR MEASUREMENT ----------------------------------
                 if processed_item.ContaminationHeight == 0:
                     continue
+                
+                if nanoscale_mode:
+                    # load csv file 
+                    csv_file1 = os.path.join(current_directory, "pixelWidth.csv")
+                    data1 = pd.read_csv(csv_file1)
+                    # Filename,PixelWidth
+                    # H6EX10_S_PLC_SPC_Full_Upload_01,1.12413e-09
+                    # get the pixel width of the image
+                    csv_row1 = data1[data1['Filename'] == image_name]
+                    if not csv_row1.empty:
+                        pixel_width = csv_row1.iloc[0]['PixelWidth']
+                        # convert from meters to nanometers
+                        pixel_width = pixel_width * 1e9
+                    else:
+                        print ("Error: No pixel width found for the image: ", image_name)
+                        succesed -= 1
+                        continue
+
+                    print ("Pixel width: ", pixel_width)
+                    # calculate the error
+                    bottom_height_diff = bottom_height_diff * pixel_width 
+                    top_height_diff = top_height_diff * pixel_width
+                    contamination_height_diff = contamination_height_diff * pixel_width
+
+
+
+                    # # Store the image in the folder for failed images
+                    # folder_with_images = os.path.join(current_directory, "Data_Storage", "BeforeResized_Datasets","Uniq_Images")
+                    # folder_for_failed_images = os.path.join(current_directory, "FailedImages")
+                    # image_path = os.path.join(folder_with_images, processed_item.ImageName)  # Assuming image is in this folder
+
+                    # # Create the directory if it doesn't exist
+                    # if not os.path.exists(folder_for_failed_images):
+                    #     os.makedirs(folder_for_failed_images)
+
+                    # # Copy the image to the failed images folder
+                    # shutil.copy(image_path, folder_for_failed_images)
                 errorDict['height'].append(contamination_height_diff)
                 errorDict['top'].append(top_height_diff)
                 errorDict['bottom'].append(bottom_height_diff)
@@ -149,6 +196,10 @@ def test_csv_data(processed_data):
 
     # CALCULATE THE ERROR MEASUREMENT ----------------------------------
     try :
+        # remove nan values from errorDict
+        for key, values in errorDict.items():
+            errorDict[key] = [value for value in values if not np.isnan(value)]
+
         mae = {key: np.mean(values) for key, values in errorDict.items()}
 
         # If you also need Mean Squared Error (MSE)

@@ -431,8 +431,8 @@ def load_image(image_path):
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     
     # check if dimensions are 1024x768
-    if image.shape[0] != 768 or image.shape[1] != 1024:
-        image = cv2.resize(image, (1024, 768))
+    # if image.shape[0] != 768 or image.shape[1] != 1024:
+    #     image = cv2.resize(image, (1024, 768))
 
     return image
 
