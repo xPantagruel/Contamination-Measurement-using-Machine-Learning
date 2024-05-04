@@ -100,8 +100,8 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
         if starting_point is not None:
             plt.scatter(starting_point, line_first_gradient[starting_point], color='y', label='Starting Point')
         plt.xlabel('Y Axis (Height of Image)', fontsize=18)
-        plt.ylabel('First Derivative', fontsize=18)
-        plt.title('First Derivative of Vertical Line Profile', fontsize=22)
+        plt.ylabel('Derivative Value', fontsize=18)  # More precise labeling
+        plt.title('Gradient Analysis of Vertical Line Profile', fontsize=22)  # Updated for clarity
         plt.legend()
 
         plt.tight_layout()
