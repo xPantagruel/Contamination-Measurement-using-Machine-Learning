@@ -1,3 +1,8 @@
+# @file image_processing.py
+# @brief image processing functions to work with images across all python scripts espacially all support functions for contamination height measurement
+# @author Matěj Macek (xmacek27@fit.vutbr.cz)
+# @date 4.5.2024
+
 import os
 import glob
 import cv2
@@ -6,8 +11,8 @@ import numpy as np
 from PIL import Image
 from statistics import mode
 from scipy.signal import find_peaks
-DEBUG = False
 
+DEBUG = False
 def find_contamination_bottom_and_top(image, starting_point, position=0, num_rows=50, shouwDebug=False):
     # Get the dimensions of the image
     height, width = image.shape
@@ -36,7 +41,6 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
     maxs, _ = find_peaks(line_first_gradient, prominence=0)  # You can adjust prominence as needed
     mins, _ = find_peaks(-line_first_gradient, prominence=0)  # Invert and find peaks for minima
 
-    # remove maxs and mins that are starting_point + 100 > and <
     # Filter out maxs and mins that are outside the specified range
     window = 180
     start_index = max(0, starting_point - window)
@@ -107,18 +111,14 @@ def find_contamination_bottom_and_top(image, starting_point, position=0, num_row
         plt.tight_layout()
         plt.show()
 
-    # Return the found maximums and minimums
     return maxs, mins, bottom_of_contamination, top_of_contamination
-
 
 def blurring(img):
     return apply_gaussian_blur(img)
 
-
 def apply_gaussian_blur(image, kernel_size=(5, 5), sigma_x=0):
     blurred_image = cv2.GaussianBlur(image, kernel_size, sigma_x)
     return blurred_image
-
 
 def apply_median_blur(image, kernel_size=5):
     blurred_image = cv2.medianBlur(image, kernel_size)
@@ -187,46 +187,34 @@ def get_starting_point_TEST(image, showDebug=False, TinBallEdge=0):
     return starting_point
 
 def get_Roi(image, left_boundary, right_boundary):
-    # Get image dimensions
     height, width= image.shape
-
-    # Crop the image based on the provided boundaries
     cropped_img = image[0:height, left_boundary:right_boundary]
-
     return cropped_img
 
 def apply_closing(img, kernel_size=(5, 5)):
     # Convert the image to grayscale if it's not already in grayscale
     if len(img.shape) > 2:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
     # Define the kernel for morphological operations (structuring element)
     kernel = np.ones(kernel_size, np.uint8)
-
     # Perform the closing operation
     closed_img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
-
     return closed_img
 
 def apply_opening(img, kernel_size=(5, 5)):
     # Convert the image to grayscale if it's not already in grayscale
     if len(img.shape) > 2:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
     # Define the kernel for morphological operations (structuring element)
     kernel = np.ones(kernel_size, np.uint8)
-
     # Perform the opening operation
     opened_img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
-
     return opened_img
 
 def get_contamination_range(image, maxY):
     img = image.copy()
-
     # Get the height and width of the image
     height, width = img.shape
-
     # Initialize variables to store the y values for each direction
     center_x = width // 2  # Start from the center column
     left_x = center_x - 400  # 400 columns to the left
@@ -286,10 +274,8 @@ def get_contamination_range(image, maxY):
 
 def get_mode_height_of_tin_ball_left_side(image):
     img = image.copy()
-
     # Get the height and width of the image
     height, width = img.shape
-
     # Initialize variables to keep track of the minimum pixel value and its coordinates
     min_pixel_values = []
     pixel_height = 0
@@ -358,14 +344,11 @@ def get_mode_height_of_tin_ball_left_side(image):
                 break
 
     if (min_pixel_values):
-        # median from all
         pixel_height = mode(min_pixel_values)
     return pixel_height
 
 def median_blur(image, kernel_size):
-    # Apply mdian blur filter
     blurred_image = cv2.medianBlur(image, kernel_size)
-
     return blurred_image
 
 def get_mode_height_of_tin_ball_right_side(image):
@@ -395,41 +378,28 @@ def get_mode_height_of_tin_ball_right_side(image):
     return mode_height
 
 def plot_histogram(image_path):
-    # Load the image in grayscale
     image = load_image(image_path)
-    # preprocessed_image = preprocess_image(image)
     preprocessed_image = median_blur(image, 5)
-    # Calculate the histogram
     hist = cv2.calcHist([preprocessed_image], [0], None, [256], [0, 256])
-
-    # Create a figure with two subplots: image and histogram
+    
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-
-    # Plot the image
     ax1.imshow(preprocessed_image, cmap='gray')
     ax1.set_title('Image')
     ax1.axis('off')
-
-    # Plot the histogram
     ax2.plot(hist, color='black')
     ax2.set_title('Histogram')
     ax2.set_xlabel('Pixel Value')
     ax2.set_ylabel('Frequency')
-
     plt.tight_layout()
     plt.show()
-    return 0,0
 
 def otsu_thresholding(image):
-    # Apply Otsu's thresholding
     _, thresholded = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    
     return thresholded
 
 def load_image(image_path):
     # resize image to 1024x768
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    
     # check if dimensions are 1024x768
     # if image.shape[0] != 768 or image.shape[1] != 1024:
     #     image = cv2.resize(image, (1024, 768))
@@ -447,81 +417,80 @@ def load_images_from_folder(folder_path):
 
     return image_paths
 
-def gaussian_smoothing(image, kernel_size=5, sigma=1.4):
-    return cv2.GaussianBlur(image, (kernel_size, kernel_size), sigma)
+# def gaussian_smoothing(image, kernel_size=5, sigma=1.4):
+#     return cv2.GaussianBlur(image, (kernel_size, kernel_size), sigma)
 
 
-def gradient_magnitude(dx, dy):
-    return np.sqrt(dx ** 2 + dy ** 2)
+# def gradient_magnitude(dx, dy):
+#     return np.sqrt(dx ** 2 + dy ** 2)
 
 
-def gradient_x(image):
-    return cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
+# def gradient_x(image):
+#     return cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
 
 
-def gradient_y(image):
-    return cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
+# def gradient_y(image):
+#     return cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
 
 
-def non_maximum_suppression(magnitude, gradient_x, gradient_y):
-    height, width = magnitude.shape
-    suppressed = np.zeros((height, width), dtype=np.uint8)
-    angle = np.arctan2(gradient_y, gradient_x) * 180 / np.pi
-    angle[angle < 0] += 180
+# def non_maximum_suppression(magnitude, gradient_x, gradient_y):
+#     height, width = magnitude.shape
+#     suppressed = np.zeros((height, width), dtype=np.uint8)
+#     angle = np.arctan2(gradient_y, gradient_x) * 180 / np.pi
+#     angle[angle < 0] += 180
 
-    for i in range(1, height - 1):
-        for j in range(1, width - 1):
-            q1, q2 = 255, 255
-            if (0 <= angle[i, j] < 22.5) or (157.5 <= angle[i, j] <= 180):
-                q1 = magnitude[i, j+1]
-                q2 = magnitude[i, j-1]
-            elif 22.5 <= angle[i, j] < 67.5:
-                q1 = magnitude[i+1, j-1]
-                q2 = magnitude[i-1, j+1]
-            elif 67.5 <= angle[i, j] < 112.5:
-                q1 = magnitude[i+1, j]
-                q2 = magnitude[i-1, j]
-            elif 112.5 <= angle[i, j] < 157.5:
-                q1 = magnitude[i-1, j-1]
-                q2 = magnitude[i+1, j+1]
+#     for i in range(1, height - 1):
+#         for j in range(1, width - 1):
+#             q1, q2 = 255, 255
+#             if (0 <= angle[i, j] < 22.5) or (157.5 <= angle[i, j] <= 180):
+#                 q1 = magnitude[i, j+1]
+#                 q2 = magnitude[i, j-1]
+#             elif 22.5 <= angle[i, j] < 67.5:
+#                 q1 = magnitude[i+1, j-1]
+#                 q2 = magnitude[i-1, j+1]
+#             elif 67.5 <= angle[i, j] < 112.5:
+#                 q1 = magnitude[i+1, j]
+#                 q2 = magnitude[i-1, j]
+#             elif 112.5 <= angle[i, j] < 157.5:
+#                 q1 = magnitude[i-1, j-1]
+#                 q2 = magnitude[i+1, j+1]
 
-            if magnitude[i, j] >= q1 and magnitude[i, j] >= q2:
-                suppressed[i, j] = magnitude[i, j]
+#             if magnitude[i, j] >= q1 and magnitude[i, j] >= q2:
+#                 suppressed[i, j] = magnitude[i, j]
 
-    return suppressed
+#     return suppressed
 
-
-def hysteresis_threshold(image, low_threshold, high_threshold):
-    strong_edges = (image >= high_threshold)
-    weak_edges = (image >= low_threshold) & (image < high_threshold)
-    return strong_edges, weak_edges
-
-
-def edge_tracking_by_hysteresis(strong_edges, weak_edges):
-    height, width = strong_edges.shape
-    edge_image = np.zeros((height, width), dtype=np.uint8)
-
-    for i in range(1, height - 1):
-        for j in range(1, width - 1):
-            if strong_edges[i, j]:
-                edge_image[i, j] = 255
-            elif weak_edges[i, j]:
-                neighbors = edge_image[i-1:i+2, j-1:j+2]
-                if np.any(neighbors == 255):
-                    edge_image[i, j] = 255
-
-    return edge_image
+# def hysteresis_threshold(image, low_threshold, high_threshold):
+#     strong_edges = (image >= high_threshold)
+#     weak_edges = (image >= low_threshold) & (image < high_threshold)
+#     return strong_edges, weak_edges
 
 
-def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, sigma=1.4):
-    smoothed_image = gaussian_smoothing(image, kernel_size, sigma)
-    gradient_x_image = gradient_x(smoothed_image)
-    gradient_y_image = gradient_y(smoothed_image)
-    gradient_magnitude_image = gradient_magnitude(
-        gradient_x_image, gradient_y_image)
-    suppressed_image = non_maximum_suppression(
-        gradient_magnitude_image, gradient_x_image, gradient_y_image)
-    strong_edges, weak_edges = hysteresis_threshold(
-        suppressed_image, low_threshold, high_threshold)
-    edge_image = edge_tracking_by_hysteresis(strong_edges, weak_edges)
-    return edge_image
+# def edge_tracking_by_hysteresis(strong_edges, weak_edges):
+#     height, width = strong_edges.shape
+#     edge_image = np.zeros((height, width), dtype=np.uint8)
+
+#     for i in range(1, height - 1):
+#         for j in range(1, width - 1):
+#             if strong_edges[i, j]:
+#                 edge_image[i, j] = 255
+#             elif weak_edges[i, j]:
+#                 neighbors = edge_image[i-1:i+2, j-1:j+2]
+#                 if np.any(neighbors == 255):
+#                     edge_image[i, j] = 255
+
+#     return edge_image
+
+
+# def canny_edge_detection(image, low_threshold, high_threshold, kernel_size=5, sigma=1.4):
+#     smoothed_image = gaussian_smoothing(image, kernel_size, sigma)
+#     gradient_x_image = gradient_x(smoothed_image)
+#     gradient_y_image = gradient_y(smoothed_image)
+#     gradient_magnitude_image = gradient_magnitude(
+#         gradient_x_image, gradient_y_image)
+#     suppressed_image = non_maximum_suppression(
+#         gradient_magnitude_image, gradient_x_image, gradient_y_image)
+#     strong_edges, weak_edges = hysteresis_threshold(
+#         suppressed_image, low_threshold, high_threshold)
+#     edge_image = edge_tracking_by_hysteresis(strong_edges, weak_edges)
+#     return edge_image

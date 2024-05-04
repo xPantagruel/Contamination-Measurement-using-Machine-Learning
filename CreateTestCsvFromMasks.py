@@ -1,7 +1,15 @@
+# @file CreateTestCsvFromMasks.py
+# @brief this python script from specific folder you define ("folder_path") takes masks and measure their height,bottom and top y values and store all in the csv file with their names
+# @author Matěj Macek (xmacek27@fit.vutbr.cz)
+# @date 4.5.2024
+
 import cv2
 import numpy as np
 import os
 import csv
+
+# define the folder path to your masks
+folder_path = r''
 
 def measure_width(image_path):
     # Read the image
@@ -11,15 +19,15 @@ def measure_width(image_path):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     
     # Define range of red color in HSV
-    lower_red = np.array([0, 100, 100])
-    upper_red = np.array([10, 255, 255])
+    lower = np.array([0, 100, 100])
+    upper = np.array([10, 255, 255])
     
-    # Threshold the HSV image to get only red colors
-    mask = cv2.inRange(hsv, lower_red, upper_red)
+    # Threshold the HSV image to get only coloured colors
+    mask = cv2.inRange(hsv, lower, upper)
     
-    # Check if there are any red pixels in the image
+    # Check if there are any coloured pixels in the image
     if np.max(mask) == 0:
-        print(f"No red pixels found in {image_path}")
+        print(f"No coloured pixels found in {image_path}")
         return None, None, None
     
     # Find contours in the mask
@@ -35,64 +43,45 @@ def measure_width(image_path):
     # Get the bounding rectangle of the maximum contour
     x, y, w, h = cv2.boundingRect(max_contour)
     
-    # Draw the bounding rectangle on the original image
-    # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    
     # Get the most left and most right points
     most_left = (x, y + h // 2)
     most_right = (x + w, y + h // 2)
     
-    # Measure width of the red area
+    # Measure width of the area
     red_width = w
-    
-    # # Show the result
-    # cv2.imshow('Result', img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
     
     return red_width, most_left, most_right
 
-def measure_red_height(image_path, column):
-    print (f"Measuring red height in column {column} of {image_path}")
-    # go through the column and find the first and last red pixel
+def measure_height(image_path, column):
+    print (f"Measuring height in column {column} of {image_path}")
+    # go through the column and find the first and last coloured pixel
     img = cv2.imread(image_path)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    lower_red = np.array([0, 100, 100])
-    upper_red = np.array([10, 255, 255])
-    mask = cv2.inRange(hsv, lower_red, upper_red)
-    first_red = None
-    last_red = None
+    lower = np.array([0, 100, 100])
+    upper = np.array([10, 255, 255])
+    mask = cv2.inRange(hsv, lower, upper)
+    first = None
+    last = None
     for i in range(mask.shape[0]):
         if mask[i, column] == 255:
-            first_red = (column, i)
+            first = (column, i)
             break
     for i in range(mask.shape[0] - 1, -1, -1):
         if mask[i, column] == 255:
-            last_red = (column, i)
+            last = (column, i)
             break
-    if first_red is None or last_red is None:
-        print(f"No red pixels found in column {column} of {image_path}")
+    if first is None or last is None:
+        print(f"No coloured pixels found in column {column} of {image_path}")
         return None
 
-    height = last_red[1] - first_red[1]
+    height = last[1] - first[1]
     
-    # show in the image the first and last red pixel with lines 
-    
-    # cv2.line(img, first_red, (first_red[0] + 10, first_red[1]), (122, 122, 122), 2)
-    # cv2.line(img, last_red, (last_red[0] + 10, last_red[1]), (0, 255, 0), 2)
-    # cv2.imshow('Result', img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-    # last red  = top 
-    # first red = bottom    
-    return height,  first_red[1],last_red[1]
+    return height,  first[1],last[1]
 
 # Path to the folder containing images
 # in actual folder will be folder maskks with images
 current_directory = os.path.dirname(os.path.realpath(__file__))
-# folder_path = os.path.join(current_directory, "Data_Storage/maskResizedUniq/Unique_Images_Masks")
-folder_path = r'C:\Users\matej.macek\OneDrive - Thermo Fisher Scientific\Desktop\BC Contamination Measurement\BC- FORK\ContaminationMeasurement\Data_Storage\BeforeResized_Datasets\MasksBeforeRescale'
+folder_path = os.path.join(current_directory, "Data_Storage/maskResizedUniq/Unique_Images_Masks")
 # CSV file path
 csv_file_path = os.path.join(current_directory, "contamination_measurements_before_resized.csv")
 
@@ -107,11 +96,11 @@ with open(csv_file_path, 'w', newline='') as csvfile:
     for filename in os.listdir(folder_path):
         if filename.endswith(".jpg") or filename.endswith(".png"):
             image_path = os.path.join(folder_path, filename)
-            red_width, most_left, most_right = measure_width(image_path)
-            if red_width is not None:
-                starting_column = most_left[0] + red_width // 2
-                height,bottom_height_y,top_height_y = measure_red_height(image_path, starting_column)
-                print(f"Image: {filename}, Red Width: {red_width}, Most Left Point: {most_left}, Most Right Point: {most_right}, Height: {height}")
+            width, most_left, most_right = measure_width(image_path)
+            if width is not None:
+                starting_column = most_left[0] + width // 2
+                height,bottom_height_y,top_height_y = measure_height(image_path, starting_column)
+                print(f"Image: {filename}, Width: {width}, Most Left Point: {most_left}, Most Right Point: {most_right}, Height: {height}")
 
             if most_left is not None:
                 filename = filename.replace(".jpg", "")

@@ -1,14 +1,18 @@
+# @file tests.py
+# @brief this file is for compare the measured values to ground truth data and calculate the error and return the results
+# @author Matěj Macek (xmacek27@fit.vutbr.cz)
+# @date 4.5.2024
+
 import os
 import pandas as pd
-from colorama import Fore, Style  # Import colorama modules for text coloring
-import shutil  # Import shutil for file operations
+from colorama import Fore, Style  
+import shutil 
 import numpy as np
 import matplotlib.pyplot as plt
 
 store_failed_images = False
-nanoscale_mode = True
 DEBUG = False
-def test_csv_data(processed_data):
+def test_csv_data(processed_data, nanoscale_mode=False):
     current_directory = os.path.dirname(os.path.realpath(__file__))
     if nanoscale_mode:
         csv_file = os.path.join(current_directory, "contamination_measurements_before_resized.csv")
@@ -65,8 +69,6 @@ def test_csv_data(processed_data):
                     # load csv file 
                     csv_file1 = os.path.join(current_directory, "pixelWidth.csv")
                     data1 = pd.read_csv(csv_file1)
-                    # Filename,PixelWidth
-                    # H6EX10_S_PLC_SPC_Full_Upload_01,1.12413e-09
                     # get the pixel width of the image
                     csv_row1 = data1[data1['Filename'] == image_name]
                     if not csv_row1.empty:
@@ -83,8 +85,6 @@ def test_csv_data(processed_data):
                     bottom_height_diff = bottom_height_diff * pixel_width 
                     top_height_diff = top_height_diff * pixel_width
                     contamination_height_diff = contamination_height_diff * pixel_width
-
-
 
                     # # Store the image in the folder for failed images
                     # folder_with_images = os.path.join(current_directory, "Data_Storage", "BeforeResized_Datasets","Uniq_Images")
@@ -191,8 +191,6 @@ def test_csv_data(processed_data):
             count += 1
             
     print ("Number of Badly Valuated Non Contaminated images that are not zero: ", count,"out of ", len(BaddlyValuatedNonContaminated['height']))
-
-    # plot_error_metrics(errorDict)
 
     # CALCULATE THE ERROR MEASUREMENT ----------------------------------
     try :

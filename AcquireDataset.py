@@ -1,9 +1,17 @@
+# @file AcquireDataset.py
+# @brief this script crop needs to set file path in variable "image_dir" where are the images, 
+# than it will create new file in the folder where it will store the images cropped and with masked dimensions from the images
+# @author Matěj Macek (xmacek27@fit.vutbr.cz)
+# @date 4.5.2024
+
 import pandas as pd
 import cv2
 import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Fill in path to images you want to remove dimensions from 
+image_dir =r''
 class AcquireDataset:
     def __init__(self, path):
         self.path = path
@@ -125,9 +133,6 @@ class AcquireDataset:
             # Apply dilation to the combined mask
             kernel = np.ones((3,3), np.uint8)
             combined_mask = cv2.dilate(combined_mask, kernel, iterations=1)
-            cv2.imshow('combined_mask', combined_mask)
-            cv2.waitKey(0)
-            cv2.imwrite(r'C:\Users\matej.macek\OneDrive - Thermo Fisher Scientific\Desktop\BC Contamination Measurement\BC- FORK\ContaminationMeasurement\combined_mask.png', combined_mask)
             return combined_mask
 
         # Create combined mask using the provided image path
@@ -136,15 +141,9 @@ class AcquireDataset:
         return result_combined_mask
 
     def Get_Image_Without_Dimensions(self, image_path):
-        # Create the combined mask using the provided image path
         result_combined_mask = self.create_combined_mask(image_path)
-
         original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         result_image = cv2.inpaint(original_image, result_combined_mask, inpaintRadius=3, flags=cv2.INPAINT_NS)
-        cv2.imshow('result_image', result_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        cv2.imwrite(r'C:\Users\matej.macek\OneDrive - Thermo Fisher Scientific\Desktop\BC Contamination Measurement\BC- FORK\ContaminationMeasurement\result_image.png', result_image)
         return result_image
     
     def Remove_Dimensions_From_Images(self):
@@ -162,12 +161,5 @@ class AcquireDataset:
             #save image
             cv2.imwrite(os.path.join(new_path, image_file), result_image)
 
-
-# Adjust path to the images
-image_path = r'C:\Users\matej.macek\OneDrive - Thermo Fisher Scientific\Desktop\BC Contamination Measurement\BC- FORK\ContaminationMeasurement\ImagesWithDimensions\H6EX10_S_PLC_SPC_Upload_01.tif'
-
-# Adjust path to the images
-AcquireDataset = AcquireDataset(r'C:\Users\matej.macek\OneDrive - Thermo Fisher Scientific\Desktop\BC Contamination Measurement\BC- FORK\ContaminationMeasurement\ImagesWithDimensions')
-
-AcquireDataset.Get_Image_Without_Dimensions(image_path)
-# AcquireDataset.Remove_Dimensions_From_Images()
+AcquireDataset = AcquireDataset(image_dir)
+AcquireDataset.Remove_Dimensions_From_Images()

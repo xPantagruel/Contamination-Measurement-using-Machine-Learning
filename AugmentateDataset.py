@@ -1,10 +1,21 @@
+# @file AugmentateDataset.py
+# @brief file to create augmented images for our finetuning process
+# @author Matěj Macek (xmacek27@fit.vutbr.cz)
+# @date 4.5.2024
+
 import cv2
 import numpy as np
 import albumentations as A
 import os
 from multiprocessing import Pool
 
-# Define the augmentation pipeline
+# fill in these file destinations, file with masks and images you want to augmentate and also files where you want to store new augmented images and masks
+image_dir = r''
+output_image_dir =r''
+mask_dir = r''
+output_mask_dir = r''
+
+# The augmentation pipeline
 augmentation_pipeline = A.Compose([
     A.OneOf([
         A.GaussNoise(var_limit=(10.0, 50.0), p=1),
@@ -13,7 +24,6 @@ augmentation_pipeline = A.Compose([
     ], p=0.7),
     A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.7),
     A.RandomScale(scale_limit=0.1, p=0.7),
-    # Adjusted ShiftScaleRotate with new border_mode
     A.ShiftScaleRotate(
         shift_limit=0.0625,
         scale_limit=0.1,
@@ -21,7 +31,7 @@ augmentation_pipeline = A.Compose([
         p=1.0,
         border_mode=cv2.BORDER_REFLECT  # Changed to BORDER_REFLECT to avoid black borders
     ),
-    A.Resize(320, 480)  # Resize all images to 512x512
+    A.Resize(320, 480)  # Resize all images 
 ], additional_targets={'mask': 'image'})  # Apply the same transformation to the mask
 
 def augment_image_and_mask(args):
@@ -58,10 +68,6 @@ def augment_images_and_masks_in_directory(args):
 
     with Pool() as pool:
         pool.map(augment_image_and_mask, params)
+        
 if __name__ == '__main__':
-    # Example usage with your specific paths
-    image_dir = r'/mnt/c/Users/matys/Desktop/FIT/3BIT/zimni/BC-work/Finetuning_DeepLabV3/CrackForest/Images'
-    output_image_dir =r'/mnt/c/Users/matys/Desktop/FIT/3BIT/zimni/BC-work/ContaminationMeasurement/augmented/Images'
-    mask_dir = r'/mnt/c/Users/matys/Desktop/FIT/3BIT/zimni/BC-work/Finetuning_DeepLabV3/CrackForest/Masks'
-    output_mask_dir = r'/mnt/c/Users/matys/Desktop/FIT/3BIT/zimni/BC-work/ContaminationMeasurement/augmented/Masks'
     augment_images_and_masks_in_directory((image_dir, mask_dir, output_image_dir, output_mask_dir, 10))
